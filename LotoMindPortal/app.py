@@ -91,6 +91,8 @@ def create_app():
     return app
 
 
+app = create_app()
+# Vercel, o app esta aqui!
+
 if __name__ == '__main__':
-    app = create_app()
     app.run(debug=True, host='0.0.0.0', port=5050)
