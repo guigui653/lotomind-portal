@@ -1,0 +1,58 @@
+# ═══════════════════════════════════════════════════════
+#  LotteryGateway — Application Configuration
+# ═══════════════════════════════════════════════════════
+
+spring:
+  application:
+    name: lottery-gateway
+
+  # ── DataSource (H2 em memória) ────────────────────
+  datasource:
+    url: jdbc:h2:mem:lotterydb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # ── JPA / Hibernate ───────────────────────────────
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    defer-datasource-initialization: true
+
+  # ── H2 Console (dev only) ─────────────────────────
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # ── SQL Init ──────────────────────────────────────
+  sql:
+    init:
+      mode: always
+
+# ── Server ──────────────────────────────────────────
+server:
+  port: 8080
+
+# ── JWT ─────────────────────────────────────────────
+jwt:
+  secret: ${JWT_SECRET:lotterygateway-super-secret-key-min-32-chars!!}
+  expiration-ms: ${JWT_EXPIRATION:86400000}   # 24 horas
+
+# ── Python Services ────────────────────────────────
+python:
+  megamind:
+    url: ${MEGAMIND_URL:http://localhost:5000}
+  lotomind:
+    url: ${LOTOMIND_URL:http://localhost:8501}
+
+# ── Logging ─────────────────────────────────────────
+logging:
+  level:
+    com.lotterygateway: DEBUG
+    org.springframework.security: INFO
+    org.springframework.web: INFO

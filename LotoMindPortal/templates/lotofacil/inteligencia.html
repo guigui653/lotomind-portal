@@ -1,0 +1,639 @@
+{% extends "base.html" %}
+{% block title %}LotoMind — Inteligência Lotofácil v2.0{% endblock %}
+{% block page_title %}🧠 Motor de Inteligência Lotofácil{% endblock %}
+
+{% block content %}
+{% if erro %}
+<div class="alert alert-danger text-center">
+    <h4><i class="bi bi-exclamation-triangle"></i> Erro ao carregar dados</h4>
+    <p>Verifique sua conexão e tente novamente.</p>
+</div>
+{% else %}
+
+<!-- Header -->
+<div class="text-center mb-4">
+    <h2 class="fw-900" style="background: linear-gradient(135deg, var(--accent-purple), var(--accent-green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+        <i class="bi bi-cpu-fill" style="-webkit-text-fill-color: var(--accent-purple)"></i>
+        Motor de Inteligência LotoMind
+    </h2>
+    <p class="text-muted small">Versão 2.0 — 10 Diretrizes Técnicas Avançadas • C(25,15) • Modelagem Matemática</p>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-cpu-fill"></i></div>
+            <div class="stat-body">
+                <div class="stat-label">Diretrizes Ativas</div>
+                <div class="stat-value">10/10</div>
+                <span class="stat-trend trend-up">Todas operacionais</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-database-fill"></i></div>
+            <div class="stat-body">
+                <div class="stat-label">Concursos Analisados</div>
+                <div class="stat-value">{{ total_jogos }}</div>
+                <span class="stat-trend text-muted">Rolling Window ativo</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <div class="stat-body">
+                <div class="stat-label">Entropia Média</div>
+                <div class="stat-value">{{ entropia_media }}</div>
+                <span class="stat-trend text-muted">H de Shannon (bits)</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-bar-chart-steps"></i></div>
+            <div class="stat-body">
+                <div class="stat-label">Teste χ²</div>
+                <div class="stat-value">{{ chi2_info.chi2 }}</div>
+                <span class="stat-trend text-muted">p={{ chi2_info.p_valor }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Painel das 10 Diretrizes -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-shield-check" style="color: var(--accent-purple)"></i> Painel de Diretrizes Técnicas</h5>
+        <p class="text-muted small">Status operacional de cada diretriz do Motor de Inteligência</p>
+        <div class="row g-3 mt-2">
+            {% for key, info in resumo.items() %}
+            <div class="col-md-3 col-sm-6">
+                <div class="diretriz-card">
+                    <div class="diretriz-icon">{{ info.icon }}</div>
+                    <div class="diretriz-body">
+                        <div class="diretriz-nome">{{ info.nome }}</div>
+                        <div class="diretriz-desc">{{ info.descricao }}</div>
+                        <span class="badge diretriz-badge">✅ Ativo</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Row: Hipergeométrica + Moldura -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-distribute-vertical" style="color: var(--accent-purple)"></i> Distribuição Hipergeométrica (11-15 pts)</h5>
+                <p class="text-muted small">Zona de Retorno (11-12 pts) vs Zona Premium (13-15 pts)</p>
+                <canvas id="chartHiper" height="240"></canvas>
+                <div class="mt-3 text-center">
+                    <span class="badge" style="background: rgba(155,89,182,0.15); color: var(--accent-purple);">
+                        Zona Retorno: {{ "%.2f"|format(hiper.prob_zona_retorno * 100) }}%
+                    </span>
+                    <span class="badge" style="background: rgba(0,184,148,0.15); color: var(--accent-green);">
+                        Zona Premium: {{ "%.2f"|format(hiper.prob_zona_premium * 100) }}%
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Moldura do Volante -->
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-grid-3x3" style="color: var(--accent-green)"></i> Moldura do Volante (5×5)</h5>
+                <p class="text-muted small">Média histórica: {{ moldura_stats.media }} números na moldura (ideal: {{ moldura_stats.faixa_ideal }})</p>
+                <div class="volante-grid mt-3">
+                    {% for n in range(1, 26) %}
+                    <div class="volante-cell {% if n in [1,2,3,4,5,6,10,11,15,16,20,21,22,23,24,25] %}cell-moldura{% else %}cell-miolo{% endif %}">
+                        {{ '%02d' % n }}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-3 d-flex gap-3 justify-content-center">
+                    <span class="small"><span class="cell-moldura-mini"></span> Moldura (16 posições)</span>
+                    <span class="small"><span class="cell-miolo-mini"></span> Miolo (9 posições)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row: Ciclos + Decaimento -->
+<div class="row g-4 mb-4">
+    <!-- Ciclos de Fechamento -->
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-arrow-repeat" style="color: var(--accent-purple)"></i> Ciclos de Fechamento</h5>
+                <p class="text-muted small">Progresso: {{ ciclos.progresso }}% do ciclo atual ({{ ciclos.jogos_no_ciclo }} jogos)</p>
+                <div class="progress mb-3" style="height: 12px; background: rgba(255,255,255,0.05);">
+                    <div class="progress-bar" data-width="{{ ciclos.progresso }}%" style="width: 0%; background: linear-gradient(90deg, var(--accent-purple), var(--accent-green)); border-radius: 6px;"></div>
+                </div>
+                {% if ciclos.faltam %}
+                <h6 class="mt-3 small text-warning"><i class="bi bi-exclamation-circle-fill"></i> Dezenas que FALTAM para fechar o ciclo ({{ ciclos.faltam|length }}):</h6>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    {% for d in ciclos.faltam %}
+                    <span class="dezena-ball small-ball" style="background: linear-gradient(135deg, #e74c3c, #c0392b); border-color: #e74c3c; box-shadow: 0 0 12px rgba(231,76,60,0.3);">{{ '%02d' % d }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-success small mt-2"><i class="bi bi-check-circle"></i> Ciclo completo! Todas as 25 dezenas já saíram recentemente.</div>
+                {% endif %}
+                <div class="mt-3 small text-muted">
+                    <i class="bi bi-info-circle"></i> {{ ciclos.ciclos_completos }} ciclos completos no histórico
+                    {% if ciclos.media_ciclo %} • Média: {{ ciclos.media_ciclo }} jogos/ciclo{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decaimento Temporal -->
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-hourglass-split" style="color: #e74c3c"></i> Decaimento Temporal — Atraso Crítico</h5>
+                <p class="text-muted small">Dezenas com maior tempo sem aparecer (peso exponencial)</p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-dark align-middle mb-0" style="background: transparent;">
+                        <thead><tr><th>Dezena</th><th>Atraso</th><th>Peso</th><th>Zona</th></tr></thead>
+                        <tbody>
+                            {% for item in atrasados %}
+                            <tr>
+                                <td><span class="dezena-ball small-ball" style="background: linear-gradient(135deg, var(--accent-purple), #8e44ad); border-color: var(--accent-purple);">{{ '%02d' % item.dezena }}</span></td>
+                                <td>{{ item.atraso }} jogos</td>
+                                <td>
+                                    <div class="progress" style="height: 8px; background: rgba(255,255,255,0.05);">
+                                        <div class="progress-bar" data-width="{{ (item.peso / 3 * 100)|int }}%" style="width: 0%; background: linear-gradient(90deg, #9b59b6, #e74c3c);"></div>
+                                    </div>
+                                    <small>{{ item.peso }}x</small>
+                                </td>
+                                <td><span class="badge" style="background: rgba(255,255,255,0.06);">{{ item.zona }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row: Resíduos de Pearson + Pares de Ouro -->
+<div class="row g-4 mb-4">
+    <!-- Pearson -->
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-calculator" style="color: var(--accent-green)"></i> Resíduos de Pearson — Viés de Maturação</h5>
+                <p class="text-muted small">Dezenas abaixo da média tendem a retornar (Regressão à Média)</p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-dark align-middle mb-0" style="background: transparent;">
+                        <thead><tr><th>Dezena</th><th>Resíduo χ²</th><th>Maturação</th><th>Status</th></tr></thead>
+                        <tbody>
+                            {% for item in maturados[:12] %}
+                            <tr>
+                                <td><span class="dezena-ball small-ball" style="background: linear-gradient(135deg, var(--accent-green), #27ae60); border-color: var(--accent-green); color: #0a0f1a; font-weight: 800;">{{ '%02d' % item.dezena }}</span></td>
+                                <td>{{ item.residuo_pearson }}</td>
+                                <td>
+                                    <div class="progress" style="height: 8px; background: rgba(255,255,255,0.05);">
+                                        <div class="progress-bar" data-width="{{ (item.maturacao / 3 * 100)|int|abs }}%" style="width: 0%; background: linear-gradient(90deg, var(--accent-purple), var(--accent-green));"></div>
+                                    </div>
+                                    <small>{{ item.maturacao }}</small>
+                                </td>
+                                <td><span class="badge" style="background: rgba(255,255,255,0.06);">{{ item.classificacao }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pares de Ouro -->
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-link-45deg" style="color: var(--accent-purple)"></i> Pares e Trios de Ouro (Coocorrência)</h5>
+                <p class="text-muted small">Dezenas que formam ligas de alta correlação (>0.7)</p>
+                <h6 class="text-success small"><i class="bi bi-people-fill"></i> Top Pares</h6>
+                <div class="row g-2 mb-3">
+                    {% for par in pares_pos[:4] %}
+                    <div class="col-md-6">
+                        <div class="par-card par-positivo">
+                            <span class="dezena-ball small-ball" style="background: linear-gradient(135deg, var(--accent-purple), #8e44ad); border-color: var(--accent-purple);">{{ '%02d' % par.par[0] }}</span>
+                            <i class="bi bi-link-45deg mx-1 text-muted"></i>
+                            <span class="dezena-ball small-ball" style="background: linear-gradient(135deg, var(--accent-purple), #8e44ad); border-color: var(--accent-purple);">{{ '%02d' % par.par[1] }}</span>
+                            <span class="badge ms-2" style="background: rgba(0,184,148,0.15); color: var(--accent-green);">{{ par.coocorrencias }}×</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <h6 class="text-warning small"><i class="bi bi-diagram-3-fill"></i> Trios Intelígentes</h6>
+                <div class="row g-2">
+                    {% for trio in trios[:4] %}
+                    <div class="col-md-6">
+                        <div class="par-card text-center" style="border-color: #f39c12;">
+                            <span class="dezena-ball small-ball" style="background: #f39c12; border-color: #e67e22;">{{ '%02d' % trio.trio[0] }}</span>
+                            <i class="bi bi-dash text-muted"></i>
+                            <span class="dezena-ball small-ball" style="background: #f39c12; border-color: #e67e22;">{{ '%02d' % trio.trio[1] }}</span>
+                            <i class="bi bi-dash text-muted"></i>
+                            <span class="dezena-ball small-ball" style="background: #f39c12; border-color: #e67e22;">{{ '%02d' % trio.trio[2] }}</span>
+                            <span class="badge ms-2" style="background: rgba(243,156,18,0.15); color: #f1c40f;">{{ trio.correlacao_idx }}x</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if not trios %}
+                    <div class="text-muted small px-3">Nenhum trio com correlação forte detectado recentemente.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row: Benford + Clusterização -->
+<div class="row g-4 mb-4">
+    <!-- Lei de Benford -->
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-graph-up-arrow" style="color: #3498db"></i> Lei de Benford (Validação Logarítmica)</h5>
+                <p class="text-muted small">Auditoria de aleatoriedade natural contra vieses mecânicos.</p>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge {% if benford.aprovado %}bg-success{% else %}bg-warning{% endif %} px-3 py-2">
+                        Conformidade: {{ benford.conformidade }}%
+                    </span>
+                    <span class="small text-muted">Ideal > 70%</span>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-sm table-dark align-middle mb-0" style="background: transparent;">
+                        <thead><tr><th>Dígito</th><th>Real</th><th>Ideal (Log)</th><th>Status</th></tr></thead>
+                        <tbody>
+                            {% for d in [1, 2, 3] %}
+                            <tr>
+                                <td><span class="badge bg-secondary">{{ d }}</span></td>
+                                <td>{{ benford.distribuicao_real[d] }}%</td>
+                                <td class="text-muted">{{ benford.distribuicao_esperada[d] }}%</td>
+                                <td>
+                                    {% if (benford.distribuicao_real[d] - benford.distribuicao_esperada[d])|abs <= 5.0 %}
+                                    <span class="text-success"><i class="bi bi-check-circle"></i></span>
+                                    {% else %}
+                                    <span class="text-warning"><i class="bi bi-exclamation-triangle"></i></span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rolling Windows Original (Movido para cá) -->
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-graph-up" style="color: var(--accent-green)"></i> Janelas Deslizantes — Tendências</h5>
+                <p class="text-muted small">Últimos {{ rolling.janela }} concursos</p>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <h6 class="text-success small"><i class="bi bi-arrow-up-circle-fill"></i> Em Alta ({{ rolling.dezenas_subindo|length }})</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for d in rolling.dezenas_subindo %}
+                            <span class="dezena-ball small-ball" style="background: linear-gradient(135deg, #27ae60, #2ecc71); border-color: #2ecc71; box-shadow: 0 0 10px rgba(46,204,113,0.3);">{{ '%02d' % d }}</span>
+                            {% endfor %}
+                            {% if not rolling.dezenas_subindo %}<span class="text-muted small">Nenhuma</span>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 style="color: #e74c3c;" class="small"><i class="bi bi-arrow-down-circle-fill"></i> Em Queda ({{ rolling.dezenas_caindo|length }})</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for d in rolling.dezenas_caindo %}
+                            <span class="dezena-ball small-ball" style="background: linear-gradient(135deg, #7f8c8d, #95a5a6); border-color: #95a5a6;">{{ '%02d' % d }}</span>
+                            {% endfor %}
+                            {% if not rolling.dezenas_caindo %}<span class="text-muted small">Nenhuma</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Remover o Rolling Windows avulso daqui para baixo se houver outro, ou deixar assim -->
+
+
+<!-- Gerador Inteligente -->
+<div class="card glass-card mb-4" id="gerador-inteligente">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-stars" style="color: var(--accent-purple)"></i> Gerador Inteligente LotoMind 2.0</h5>
+        <p class="text-muted small">Gera jogos otimizados pelo pipeline completo das 10 diretrizes técnicas</p>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Quantidade de Jogos</label>
+                <select class="form-select" id="qtdJogos">
+                    <option value="3">3 jogos</option>
+                    <option value="5" selected>5 jogos</option>
+                    <option value="8">8 jogos</option>
+                    <option value="10">10 jogos</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-lg w-100 btn-lotomind" onclick="gerarInteligente()">
+                    <i class="bi bi-cpu-fill"></i> Gerar LotoMind
+                </button>
+            </div>
+        </div>
+        <div id="resultadoInteligente" class="mt-4"></div>
+    </div>
+</div>
+
+<!-- Analisador -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-search" style="color: var(--accent-green)"></i> Analisador de Jogo — 10 Diretrizes</h5>
+        <p class="text-muted small">Analise qualquer jogo de 15 dezenas pelo pipeline completo</p>
+        <div class="row g-3">
+            <div class="col-md-8">
+                <input type="text" class="form-control form-control-lg" id="inputAnalisar"
+                       placeholder="Digite 15 números separados por espaço (ex: 1 2 3 5 7 8 10 11 13 15 18 20 22 24 25)">
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-outline-light btn-lg w-100" onclick="analisarJogo()">
+                    <i class="bi bi-search"></i> Analisar
+                </button>
+            </div>
+        </div>
+        <div id="resultadoAnalise" class="mt-4"></div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if not erro %}
+<script id="data-hiper" type="application/json">{{ hiper.distribuicao | tojson | safe }}</script>
+
+<script>
+const hiperDistribuicao = JSON.parse(document.getElementById('data-hiper').textContent);
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar barras de progresso
+    document.querySelectorAll('.progress-bar[data-width]').forEach(bar => {
+        setTimeout(() => { bar.style.width = bar.dataset.width; }, 100);
+    });
+    renderHipergeometrica();
+});
+
+// ═══════════════════════════════════════════════════════════
+// GRÁFICO HIPERGEOMÉTRICA
+// ═══════════════════════════════════════════════════════════
+
+function renderHipergeometrica() {
+    const ctx = document.getElementById('chartHiper').getContext('2d');
+    const labels = Object.keys(hiperDistribuicao).map(k => `${k} pts`);
+    const values = Object.values(hiperDistribuicao);
+    const maxVal = Math.max(...values);
+
+    const colors = Object.keys(hiperDistribuicao).map(k => {
+        const ki = parseInt(k);
+        if (ki >= 13) return '#00b894';     // Zona Premium
+        if (ki >= 11) return '#9b59b6';     // Zona de Retorno
+        return 'rgba(155,89,182,0.25)';     // Fora
+    });
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'P(X=k)',
+                data: values,
+                backgroundColor: colors,
+                borderRadius: 8,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `P(X=${Object.keys(hiperDistribuicao)[ctx.dataIndex]}) = ${(ctx.raw * 100).toFixed(2)}%`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: 'rgba(232,234,240,0.5)', font: { family: 'Inter' } },
+                    grid: { display: false }
+                },
+                y: {
+                    ticks: {
+                        color: 'rgba(232,234,240,0.3)',
+                        font: { family: 'Inter' },
+                        callback: v => (v * 100).toFixed(1) + '%'
+                    },
+                    grid: { color: 'rgba(255,255,255,0.03)' }
+                }
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════════
+// GERADOR INTELIGENTE
+// ═══════════════════════════════════════════════════════════
+
+async function gerarInteligente() {
+    const btn = event.target.closest('button');
+    const qtd = document.getElementById('qtdJogos').value;
+    const container = document.getElementById('resultadoInteligente');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processando pipeline...';
+    container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-warning"></div><p class="mt-2 text-muted">Executando 8 diretrizes técnicas...</p></div>';
+
+    try {
+        const resp = await fetch('/lotofacil/gerar-inteligente', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ qtd: parseInt(qtd) })
+        });
+        const data = await resp.json();
+
+        if (data.erro) {
+            container.innerHTML = `<div class="alert alert-danger">${data.erro}</div>`;
+            return;
+        }
+
+        let html = '<div class="row g-3">';
+        data.jogos.forEach((jogo, idx) => {
+            const scoreClass = jogo.score_final >= 75 ? 'elite' : (jogo.score_final >= 55 ? 'bom' : 'regular');
+            html += `
+            <div class="col-md-6 col-lg-4">
+                <div class="jogo-card jogo-${scoreClass}">
+                    <div class="jogo-header">
+                        <span class="jogo-rank">#${idx + 1}</span>
+                        <span class="jogo-classificacao">${jogo.classificacao}</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-1 my-3 justify-content-center">
+                        ${jogo.jogo.map(n => `<span class="dezena-ball small-ball" style="background: linear-gradient(135deg, var(--accent-purple), #8e44ad); border-color: var(--accent-purple);">${n.toString().padStart(2, '0')}</span>`).join('')}
+                    </div>
+                    <div class="jogo-score">
+                        <div class="score-bar"><div class="score-fill" style="width: ${jogo.score_final}%; background: linear-gradient(90deg, #9b59b6, #00b894);"></div></div>
+                        <span class="score-label">${jogo.score_final}/100</span>
+                    </div>
+                    <div class="jogo-meta mt-2">
+                        <span class="badge" style="background: rgba(0,184,148,0.12); color: var(--accent-green);">${jogo.diretrizes_aprovadas}/${jogo.total_diretrizes} diretrizes</span>
+                        <span class="badge" style="background: rgba(155,89,182,0.12); color: var(--accent-purple);">Soma: ${jogo.jogo.reduce((a,b) => a+b, 0)}</span>
+                    </div>
+                </div>
+            </div>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    } catch (e) {
+        container.innerHTML = `<div class="alert alert-danger">Erro: ${e.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-cpu-fill"></i> Gerar LotoMind';
+    }
+}
+
+// ═══════════════════════════════════════════════════════════
+// ANALISADOR DE JOGO
+// ═══════════════════════════════════════════════════════════
+
+async function analisarJogo() {
+    const input = document.getElementById('inputAnalisar').value.trim();
+    const container = document.getElementById('resultadoAnalise');
+    const nums = input.split(/[\s,]+/).map(n => parseInt(n)).filter(n => !isNaN(n));
+
+    if (nums.length !== 15) {
+        container.innerHTML = '<div class="alert alert-warning">Digite exatamente 15 números separados por espaço.</div>';
+        return;
+    }
+
+    container.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-warning"></div> Analisando...</div>';
+
+    try {
+        const resp = await fetch('/lotofacil/api/analise-inteligente', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ numeros: nums })
+        });
+        const data = await resp.json();
+
+        if (data.erro) {
+            container.innerHTML = `<div class="alert alert-danger">${data.erro}</div>`;
+            return;
+        }
+
+        const d = data.detalhes;
+        let html = `
+        <div class="analise-resultado">
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <div class="score-grande text-center">
+                        <div class="score-numero" style="background: linear-gradient(135deg, var(--accent-purple), var(--accent-green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${data.score_final}</div>
+                        <div class="score-max">/100</div>
+                        <div class="mt-1">${data.classificacao}</div>
+                        <div class="small text-muted mt-1">${data.diretrizes_aprovadas}/${data.total_diretrizes} diretrizes aprovadas</div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <canvas id="chartRadar" height="220"></canvas>
+                </div>
+            </div>
+            <div class="row g-2 mt-3">`;
+
+        const diretrizes = [
+            { key: 'hipergeometrica', nome: '📊 Hipergeométrica' },
+            { key: 'entropia', nome: '🔀 Entropia' },
+            { key: 'pearson', nome: '📐 Pearson' },
+            { key: 'moldura', nome: '🎯 Moldura' },
+            { key: 'ciclos', nome: '🔄 Ciclos' },
+            { key: 'coocorrencia', nome: '🔗 Coocorrência' },
+            { key: 'paridade_primos', nome: '⚖️ Paridade/Primos' },
+            { key: 'soma', nome: '➕ Soma' },
+            { key: 'clusterizacao', nome: '🎯 Clusterização' },
+            { key: 'benford', nome: '📈 Benford' },
+        ];
+
+        diretrizes.forEach(dir => {
+            const info = d[dir.key] || {};
+            const aprovado = info.aprovado || false;
+            const badge = aprovado ? '✅' : '❌';
+            const borderColor = aprovado ? 'rgba(0,184,148,0.3)' : 'rgba(231,76,60,0.3)';
+            html += `
+                <div class="col-md-3 col-6">
+                    <div class="mini-diretriz" style="border-color: ${borderColor}">
+                        <span>${badge} ${dir.nome}</span>
+                    </div>
+                </div>`;
+        });
+
+        html += '</div></div>';
+        container.innerHTML = html;
+
+        // Radar chart
+        const radarCtx = document.getElementById('chartRadar');
+        if (radarCtx) {
+            const labels = diretrizes.map(d => d.nome.substring(2));
+            const values = diretrizes.map(dir => d[dir.key]?.score || 0);
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Score',
+                        data: values,
+                        backgroundColor: 'rgba(155,89,182,0.15)',
+                        borderColor: '#9b59b6',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#9b59b6',
+                        pointBorderColor: '#0f1729',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 15,
+                            ticks: { display: false },
+                            grid: { color: 'rgba(255,255,255,0.06)' },
+                            pointLabels: { color: 'rgba(232,234,240,0.6)', font: { size: 10, family: 'Inter' } },
+                            angleLines: { color: 'rgba(255,255,255,0.06)' },
+                        }
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        container.innerHTML = `<div class="alert alert-danger">Erro: ${e.message}</div>`;
+    }
+}
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Lotofácil — Simulação Monte Carlo{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-dice-6 text-warning"></i> Simulação de Monte Carlo</h2>
+    <a href="{{ url_for('lotofacil.dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+</div>
+
+<div class="card bg-dark border-secondary mb-4">
+    <div class="card-body">
+        <p class="text-muted">A simulação gera milhares de combinações aleatórias aplicando filtros estatísticos e, em seguida, as testa contra o histórico de sorteios da Caixa para atribuir um <strong>Score</strong> baseado em frequência de premiações e acertos.</p>
+        
+        <form method="POST" action="{{ url_for('lotofacil.montecarlo') }}" id="mcForm">
+            <div class="row g-3 mt-2">
+                <div class="col-md-6">
+                    <label class="form-label text-warning fw-bold">Quantidade de Jogos a Simular: <span id="qtdLabel" class="text-white">5000</span></label>
+                    <input type="range" class="form-range" name="qtd" id="qtdRange" min="1000" max="50000" step="1000" value="5000" oninput="document.getElementById('qtdLabel').innerText = this.value">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-muted">Top N Resultados:</label>
+                    <input type="number" class="form-control bg-dark text-white border-secondary" name="top_k" value="5" min="1" max="20">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-warning w-100 fw-bold text-dark" id="btnSimular">
+                        <i class="bi bi-play-fill"></i> Iniciar Simulação
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if melhores %}
+<h4 class="mb-3 text-warning"><i class="bi bi-trophy"></i> Melhores Resultados Encontrados</h4>
+<div class="row">
+    {% for jogo in melhores %}
+    <div class="col-md-6 mb-3">
+        <div class="card bg-dark border-secondary h-100">
+            <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                <span class="text-muted">Opção #{{ loop.index }}</span>
+                <span class="badge bg-warning text-dark">Score: {{ "%.1f"|format(jogo.score) }}</span>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    {% for n in jogo.dezenas %}
+                        <span class="badge bg-secondary fs-6">{{ "%02d"|format(n) }}</span>
+                    {% endfor %}
+                </div>
+                
+                <form class="formSalvarMC d-flex gap-2">
+                    <input type="hidden" name="dezenas" value="{{ jogo.dezenas | join(',') }}">
+                    <input type="hidden" name="estrategia" value="Monte Carlo #{{ loop.index }} (Score: {{"%.0f"|format(jogo.score)}})">
+                    <input type="hidden" name="loteria" value="lotofacil">
+                    
+                    <select name="slot" class="form-select form-select-sm bg-dark text-white border-secondary w-auto">
+                        <option value="{{ loop.index }}">Slot {{ loop.index }}</option>
+                        {% for i in range(1, 9) if i != loop.index %}
+                            <option value="{{ i }}">Slot {{ i }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="btn btn-sm btn-outline-warning btn-salvar-mc" data-form-index="{{ loop.index0 }}">
+                        <i class="bi bi-pin-angle"></i> Salvar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+document.getElementById('mcForm').addEventListener('submit', function() {
+    const btn = document.getElementById('btnSimular');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processando...';
+    btn.disabled = true;
+});
+
+document.querySelectorAll('.btn-salvar-mc').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const formIndex = this.getAttribute('data-form-index');
+        const form = document.querySelectorAll('.formSalvarMC')[formIndex];
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        fetch('/arsenal/salvar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if(result.status === 'success') {
+                alert('✅ Jogo salvo no Arsenal com sucesso!');
+            } else {
+                alert('❌ Erro: ' + result.message);
+            }
+        });
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

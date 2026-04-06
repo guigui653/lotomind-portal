@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Arsenal + Conferidor{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-trophy text-warning"></i> Arsenal de 8 Jogos + Conferidor</h2>
+    <span class="badge bg-secondary">Lotofácil</span>
+</div>
+
+<div class="card bg-dark border-secondary mb-4">
+    <div class="card-header border-secondary fw-bold text-muted">
+        <i class="bi bi-check-all text-success"></i> Resultado Testado: Concurso {{ ultimo_resultado | join(',') if ultimo_resultado else 'N/A' }}
+    </div>
+    <div class="card-body p-0">
+        <div class="accordion accordion-flush" id="arsenalAccordion">
+            {% for idx in range(1, 9) %}
+                {% set jogo = slots[idx] %}
+                <div class="accordion-item bg-dark border-secondary">
+                    <h2 class="accordion-header" id="heading{{ idx }}">
+                        <button class="accordion-button collapsed bg-dark text-white border-0" type="button" data-bs-toggle="collapse" data-bs-toggle="collapse" data-bs-target="#collapse{{ idx }}" aria-expanded="false" aria-controls="collapse{{ idx }}">
+                            <div class="d-flex justify-content-between w-100 align-items-center pe-3">
+                                <div>
+                                    <i class="bi bi-pin-angle-fill text-warning me-2"></i> 
+                                    <strong>Slot {{ idx }}</strong>: 
+                                    {% if jogo %}
+                                        <span class="text-info">{{ jogo.nome_estrategia }}</span>
+                                    {% else %}
+                                        <span class="text-muted">Vazio</span>
+                                    {% endif %}
+                                </div>
+                                {% if jogo and resultados %}
+                                    {% set acertos = resultados.get(idx, 0) %}
+                                    <span class="badge {% if acertos == 15 %}bg-warning text-dark{% elif acertos >= 11 %}bg-success{% else %}bg-secondary{% endif %} ms-2">
+                                        {{ acertos }} acertos
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapse{{ idx }}" class="accordion-collapse collapse" aria-labelledby="heading{{ idx }}" data-bs-parent="#arsenalAccordion">
+                        <div class="accordion-body border-top border-secondary">
+                            {% if jogo %}
+                                <div class="d-flex flex-wrap gap-2 mb-4">
+                                    {% set dezenas_list = jogo.dezenas.split(',') %}
+                                    {% for n in dezenas_list %}
+                                        {% set n_int = n|int %}
+                                        <span class="badge bg-primary fs-6">{{ "%02d"|format(n_int) }}</span>
+                                    {% endfor %}
+                                </div>
+                                
+                                <button class="btn btn-sm btn-outline-danger" onclick="deletarJogo({{ idx }}, 'lotofacil')">
+                                    <i class="bi bi-trash"></i> Limpar Slot
+                                </button>
+                            {% else %}
+                                <p class="text-muted mb-0">Nenhum jogo salvo neste slot.</p>
+                                <a href="{{ url_for('lotofacil.gerador') }}" class="btn btn-sm btn-outline-info mt-2">Ir para Gerador</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+function deletarJogo(slot, loteria) {
+    if(!confirm('Limpar este slot?')) return;
+    
+    const formData = new FormData();
+    formData.append('loteria', loteria);
+    
+    fetch('/arsenal/deletar/' + slot, {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(res => {
+        if(res.status === 'success') {
+            location.reload();
+        } else {
+            alert('Erro ao limpar slot.');
+        }
+    });
+}
+</script>
+{% endblock %}

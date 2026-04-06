@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Lotofácil — Mapa de Calor{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-thermometer-sun text-danger"></i> Mapa de Calor das 25 Dezenas</h2>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('lotofacil.dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+        <button class="btn btn-outline-info" onclick="toggleFullscreen()"><i class="bi bi-arrows-fullscreen"></i> Fullscreen</button>
+    </div>
+</div>
+
+<div class="card bg-dark border-secondary mb-4" id="heatmapCard">
+    <div class="card-body">
+        <h5 class="card-title text-center text-muted mb-4">Frequência Histórica (Todos os Concursos)</h5>
+        
+        <div style="height: 50vh; min-height: 400px; width: 100%;">
+            <canvas id="heatmapChart"></canvas>
+        </div>
+        
+        <div class="mt-4 row text-center small text-muted">
+            <div class="col"><span class="badge" style="background: rgba(255, 99, 132, 0.8)">&nbsp;&nbsp;</span> Muito Fria</div>
+            <div class="col"><span class="badge" style="background: rgba(255, 159, 64, 0.8)">&nbsp;&nbsp;</span> Fria</div>
+            <div class="col"><span class="badge" style="background: rgba(255, 205, 86, 0.8)">&nbsp;&nbsp;</span> Média</div>
+            <div class="col"><span class="badge" style="background: rgba(75, 192, 192, 0.8)">&nbsp;&nbsp;</span> Quente</div>
+            <div class="col"><span class="badge" style="background: rgba(54, 162, 235, 0.8)">&nbsp;&nbsp;</span> Muito Quente</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const ctx = document.getElementById('heatmapChart').getContext('2d');
+    const universo = {{ universo | tojson }};
+    const contagem = {{ contagem | tojson }};
+    
+    // Obter max e min para escala de cores
+    const valores = Object.values(contagem);
+    const maxVal = Math.max(...valores);
+    const minVal = Math.min(...valores);
+    const range = maxVal - minVal;
+    
+    const colors = universo.map(n => {
+        let val = contagem[n] || 0;
+        let percent = (val - minVal) / range;
+        
+        if(percent < 0.2) return 'rgba(255, 99, 132, 0.8)'; // Red
+        if(percent < 0.4) return 'rgba(255, 159, 64, 0.8)'; // Orange
+        if(percent < 0.6) return 'rgba(255, 205, 86, 0.8)'; // Yellow
+        if(percent < 0.8) return 'rgba(75, 192, 192, 0.8)'; // Green
+        return 'rgba(54, 162, 235, 0.8)'; // Blue
+    });
+
+    const heatmapChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: universo.map(n => n.toString().padStart(2, '0')),
+            datasets: [{
+                label: 'Frequência Total',
+                data: universo.map(n => contagem[n] || 0),
+                backgroundColor: colors,
+                borderColor: colors.map(c => c.replace('0.8)', '1)')),
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+    
+    function toggleFullscreen() {
+        let elem = document.getElementById("heatmapCard");
+        if (!document.fullscreenElement) {
+            elem.requestFullscreen().catch(err => {
+                alert(`Error: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    }
+</script>
+{% endblock %}

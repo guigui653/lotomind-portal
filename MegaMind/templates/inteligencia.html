@@ -1,0 +1,672 @@
+{% extends "base.html" %}
+{% block title %}MegaMind — Inteligência LotoMind v2.0{% endblock %}
+
+{% block content %}
+{% if erro %}
+<div class="alert alert-danger text-center">
+    <h4><i class="bi bi-exclamation-triangle"></i> Erro ao carregar dados da Caixa</h4>
+    <p>Verifique sua conexão e tente novamente.</p>
+    <a href="/atualizar" class="btn btn-outline-light"><i class="bi bi-arrow-clockwise"></i> Tentar Novamente</a>
+</div>
+{% else %}
+
+<!-- Header Inteligência -->
+<div class="dashboard-header">
+    <h1><i class="bi bi-cpu-fill"></i> Motor de Inteligência LotoMind</h1>
+    <div class="subtitle">Versão 2.0 — 9 Diretrizes Técnicas Avançadas • Modelagem Matemática • Teoria das Probabilidades</div>
+</div>
+
+<!-- KPI Cards — Diretrizes -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-icon"><i class="bi bi-cpu-fill"></i></div>
+            <div class="metric-body">
+                <div class="metric-label">Diretrizes Ativas</div>
+                <div class="metric-value">9/9</div>
+                <div class="metric-sub">Todas operacionais</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-icon"><i class="bi bi-database-fill"></i></div>
+            <div class="metric-body">
+                <div class="metric-label">Concursos Analisados</div>
+                <div class="metric-value">{{ total_jogos }}</div>
+                <div class="metric-sub">Rolling Window ativo</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <div class="metric-body">
+                <div class="metric-label">Entropia Média</div>
+                <div class="metric-value">{{ entropia_media }}</div>
+                <div class="metric-sub">H de Shannon (bits)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-icon"><i class="bi bi-bar-chart-steps"></i></div>
+            <div class="metric-body">
+                <div class="metric-label">Teste χ²</div>
+                <div class="metric-value">{{ chi2_info.chi2 }}</div>
+                <div class="metric-sub">p={{ chi2_info.p_valor }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Painel das 9 Diretrizes -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-shield-check" style="color: var(--accent-gold)"></i> Painel de Diretrizes Técnicas</h5>
+        <p class="text-muted small">Status operacional de cada diretriz do Motor de Inteligência</p>
+        <div class="row g-3 mt-2">
+            {% for key, info in resumo.items() %}
+            <div class="col-md-4 col-sm-6">
+                <div class="diretriz-card">
+                    <div class="diretriz-icon">{{ info.icon }}</div>
+                    <div class="diretriz-body">
+                        <div class="diretriz-nome">{{ info.nome }}</div>
+                        <div class="diretriz-desc">{{ info.descricao }}</div>
+                        <span class="badge diretriz-badge">✅ Ativo</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Row: Hipergeométrica + Benford -->
+<div class="row g-4 mb-4">
+    <!-- Distribuição Hipergeométrica -->
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-distribute-vertical" style="color: var(--accent-gold)"></i> Probabilidade Hipergeométrica</h5>
+                <p class="text-muted small">P(X=k) — Distribuição de quentes no jogo • Pico em k={{ hiper.pico_k }}</p>
+                <canvas id="chartHiper" height="220"></canvas>
+                <div class="mt-3 text-center">
+                    <span class="badge" style="background: rgba(212,160,23,0.15); color: var(--accent-gold);">
+                        Faixa Ideal: k ∈ {{ hiper.faixa_ideal }}
+                    </span>
+                    <span class="badge" style="background: rgba(0,184,148,0.15); color: var(--accent-green);">
+                        Pico: P(X={{ hiper.pico_k }}) = {{ "%.4f"|format(hiper.pico_probabilidade) }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lei de Benford -->
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-bar-chart-line-fill" style="color: var(--accent-blue)"></i> Lei de Benford (Primeiro Dígito)</h5>
+                <p class="text-muted small">Distribuição real vs esperada (logarítmica) • Conformidade: {{ benford.conformidade }}%</p>
+                <canvas id="chartBenford" height="220"></canvas>
+                {% if benford.anomalias %}
+                <div class="mt-3">
+                    <span class="badge" style="background: rgba(225,112,85,0.15); color: #e17055;">
+                        ⚠️ {{ benford.anomalias|length }} anomalia(s) detectada(s)
+                    </span>
+                </div>
+                {% else %}
+                <div class="mt-3">
+                    <span class="badge" style="background: rgba(0,184,148,0.15); color: var(--accent-green);">
+                        ✅ Sem anomalias significativas
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row: Dezenas em Atraso Crítico + Maturação Pearson -->
+<div class="row g-4 mb-4">
+    <!-- Decaimento Temporal -->
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-hourglass-split" style="color: #e17055"></i> Decaimento Temporal — Atraso Crítico</h5>
+                <p class="text-muted small">Dezenas com maior tempo sem aparecer (peso exponencial)</p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-dark align-middle mb-0" style="background: transparent;">
+                        <thead>
+                            <tr>
+                                <th>Dezena</th>
+                                <th>Atraso</th>
+                                <th>Peso</th>
+                                <th>Zona</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in atrasados[:12] %}
+                            <tr>
+                                <td><span class="dezena-ball small-ball dezena-hot">{{ '%02d' % item.dezena }}</span></td>
+                                <td>{{ item.atraso }} jogos</td>
+                                <td>
+                                    <div class="progress" style="height: 8px; background: rgba(255,255,255,0.05);">
+                                        <div class="progress-bar" data-width="{{ (item.peso / 3 * 100)|int }}%" style="width: 0%; background: linear-gradient(90deg, #00b894, #e17055);"></div>
+                                    </div>
+                                    <small>{{ item.peso }}x</small>
+                                </td>
+                                <td><span class="badge" style="background: rgba(255,255,255,0.06);">{{ item.zona }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resíduos de Pearson / Maturação -->
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-calculator" style="color: var(--accent-green)"></i> Resíduos de Pearson — Viés de Maturação</h5>
+                <p class="text-muted small">Dezenas com maior viés de maturação (freq acumulada vs recente)</p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-dark align-middle mb-0" style="background: transparent;">
+                        <thead>
+                            <tr>
+                                <th>Dezena</th>
+                                <th>Resíduo χ²</th>
+                                <th>Maturação</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in maturados[:12] %}
+                            <tr>
+                                <td><span class="dezena-ball small-ball dezena-fixo">{{ '%02d' % item.dezena }}</span></td>
+                                <td>{{ item.residuo_pearson }}</td>
+                                <td>
+                                    <div class="progress" style="height: 8px; background: rgba(255,255,255,0.05);">
+                                        <div class="progress-bar" data-width="{{ (item.maturacao / 3 * 100)|int|abs }}%" style="width: 0%; background: linear-gradient(90deg, #d4a017, #00b894);"></div>
+                                    </div>
+                                    <small>{{ item.maturacao }}</small>
+                                </td>
+                                <td><span class="badge" style="background: rgba(255,255,255,0.06);">{{ item.classificacao }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row: Correlação / Coocorrência -->
+<div class="row g-4 mb-4">
+    <!-- Pares Positivos -->
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-link-45deg" style="color: var(--accent-gold)"></i> Pares com Alta Correlação Positiva</h5>
+                <p class="text-muted small">Dezenas que frequentemente saem juntas</p>
+                <div class="row g-2">
+                    {% for par in pares_pos %}
+                    <div class="col-md-6">
+                        <div class="par-card par-positivo">
+                            <span class="dezena-ball small-ball dezena-acerto">{{ '%02d' % par.par[0] }}</span>
+                            <i class="bi bi-link-45deg mx-1"></i>
+                            <span class="dezena-ball small-ball dezena-acerto">{{ '%02d' % par.par[1] }}</span>
+                            <span class="badge ms-2" style="background: rgba(0,184,148,0.15); color: var(--accent-green);">{{ par.coocorrencias }}×</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pares Negativos -->
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-x-circle" style="color: #e17055"></i> Pares com Correlação Negativa</h5>
+                <p class="text-muted small">Dezenas que raramente saem juntas</p>
+                <div class="row g-2">
+                    {% for par in pares_neg %}
+                    <div class="col-md-6">
+                        <div class="par-card par-negativo">
+                            <span class="dezena-ball small-ball dezena-cold">{{ '%02d' % par.par[0] }}</span>
+                            <i class="bi bi-x mx-1"></i>
+                            <span class="dezena-ball small-ball dezena-cold">{{ '%02d' % par.par[1] }}</span>
+                            <span class="badge ms-2" style="background: rgba(225,112,85,0.15); color: #e17055;">{{ par.coocorrencias }}×</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rolling Windows — Tendências -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-graph-up" style="color: var(--accent-green)"></i> Janelas Deslizantes — Tendências (últimos {{ rolling.janela }} concursos)</h5>
+        <p class="text-muted small">Dezenas em tendência de alta vs baixa comparando frequência recente com histórica</p>
+        <div class="row g-3 mt-2">
+            <div class="col-md-6">
+                <h6 class="text-success"><i class="bi bi-arrow-up-circle-fill"></i> Em Alta ({{ rolling.dezenas_subindo|length }})</h6>
+                <div class="dezenas-container">
+                    {% for d in rolling.dezenas_subindo %}
+                    <span class="dezena-ball small-ball dezena-hot">{{ '%02d' % d }}</span>
+                    {% endfor %}
+                    {% if not rolling.dezenas_subindo %}
+                    <span class="text-muted">Nenhuma dezena em alta significativa</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h6 style="color: #e17055;"><i class="bi bi-arrow-down-circle-fill"></i> Em Queda ({{ rolling.dezenas_caindo|length }})</h6>
+                <div class="dezenas-container">
+                    {% for d in rolling.dezenas_caindo %}
+                    <span class="dezena-ball small-ball dezena-cold">{{ '%02d' % d }}</span>
+                    {% endfor %}
+                    {% if not rolling.dezenas_caindo %}
+                    <span class="text-muted">Nenhuma dezena em queda significativa</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gerador Inteligente LotoMind 2.0 -->
+<div class="card glass-card mb-4" id="gerador-inteligente">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-stars" style="color: var(--accent-gold)"></i> Gerador Inteligente LotoMind 2.0</h5>
+        <p class="text-muted small">Gera jogos otimizados pelo pipeline completo das 9 diretrizes técnicas</p>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Quantidade de Jogos</label>
+                <select class="form-select" id="qtdJogos">
+                    <option value="3">3 jogos</option>
+                    <option value="5" selected>5 jogos</option>
+                    <option value="8">8 jogos</option>
+                    <option value="10">10 jogos</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-lg w-100 btn-lotomind" onclick="gerarInteligente()">
+                    <i class="bi bi-cpu-fill"></i> Gerar LotoMind
+                </button>
+            </div>
+        </div>
+        <div id="resultadoInteligente" class="mt-4"></div>
+    </div>
+</div>
+
+<!-- Analisador de Jogo -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-search" style="color: var(--accent-blue)"></i> Analisador de Jogo — 9 Diretrizes</h5>
+        <p class="text-muted small">Analise qualquer jogo de 6 dezenas pelo pipeline completo</p>
+        <div class="row g-3">
+            <div class="col-md-8">
+                <input type="text" class="form-control form-control-lg" id="inputAnalisar"
+                       placeholder="Digite 6 números separados por espaço (ex: 5 12 23 34 45 56)">
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-outline-light btn-lg w-100" onclick="analisarJogo()">
+                    <i class="bi bi-search"></i> Analisar
+                </button>
+            </div>
+        </div>
+        <div id="resultadoAnalise" class="mt-4"></div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if not erro %}
+<!-- ── Dados do servidor via Elementos Ocultos para evitar erros de Linting no JS ── -->
+<script id="data-hiper" type="application/json">{{ hiper.distribuicao | tojson | safe }}</script>
+<script id="data-benford-real" type="application/json">{{ benford.distribuicao_real | tojson | safe }}</script>
+<script id="data-benford-esperado" type="application/json">{{ benford.distribuicao_esperada | tojson | safe }}</script>
+
+<script>
+// ── Dados do servidor ────────────────────────────────────
+const hiperDistribuicao = JSON.parse(document.getElementById('data-hiper').textContent);
+const benfordReal = JSON.parse(document.getElementById('data-benford-real').textContent);
+const benfordEsperado = JSON.parse(document.getElementById('data-benford-esperado').textContent);
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar barras de progresso
+    document.querySelectorAll('.progress-bar[data-width]').forEach(bar => {
+        setTimeout(() => {
+            bar.style.width = bar.dataset.width;
+        }, 100);
+    });
+
+    renderHipergeometrica();
+    renderBenford();
+});
+
+// ═══════════════════════════════════════════════════════════
+// GRÁFICOS
+// ═══════════════════════════════════════════════════════════
+
+function renderHipergeometrica() {
+    const ctx = document.getElementById('chartHiper').getContext('2d');
+    const labels = Object.keys(hiperDistribuicao).map(k => `k=${k}`);
+    const values = Object.values(hiperDistribuicao);
+    const maxVal = Math.max(...values);
+
+    const colors = values.map(v => {
+        const ratio = v / maxVal;
+        if (ratio >= 0.8) return '#d4a017';
+        if (ratio >= 0.5) return '#f0c040';
+        if (ratio >= 0.2) return '#00b894';
+        return 'rgba(26,58,110,0.6)';
+    });
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'P(X=k)',
+                data: values,
+                backgroundColor: colors,
+                borderRadius: 8,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `P(X=${ctx.dataIndex}) = ${(ctx.raw * 100).toFixed(2)}%`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: 'rgba(232,234,240,0.5)', font: { family: 'Inter' } },
+                    grid: { display: false }
+                },
+                y: {
+                    ticks: {
+                        color: 'rgba(232,234,240,0.3)',
+                        font: { family: 'Inter' },
+                        callback: v => (v * 100).toFixed(1) + '%'
+                    },
+                    grid: { color: 'rgba(255,255,255,0.03)' }
+                }
+            }
+        }
+    });
+}
+
+function renderBenford() {
+    const ctx = document.getElementById('chartBenford').getContext('2d');
+    const labels = Object.keys(benfordReal).map(d => `Dígito ${d}`);
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Real (%)',
+                    data: Object.values(benfordReal),
+                    backgroundColor: '#d4a017cc',
+                    borderRadius: 6,
+                },
+                {
+                    label: 'Benford Esperado (%)',
+                    data: Object.values(benfordEsperado),
+                    backgroundColor: '#00b894cc',
+                    borderRadius: 6,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'rgba(232,234,240,0.6)',
+                        font: { family: 'Inter', weight: 500 },
+                    }
+                },
+            },
+            scales: {
+                x: {
+                    ticks: { color: 'rgba(232,234,240,0.5)', font: { family: 'Inter' } },
+                    grid: { display: false }
+                },
+                y: {
+                    ticks: {
+                        color: 'rgba(232,234,240,0.3)',
+                        font: { family: 'Inter' },
+                        callback: v => v.toFixed(1) + '%'
+                    },
+                    grid: { color: 'rgba(255,255,255,0.03)' }
+                }
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════════
+// GERADOR INTELIGENTE
+// ═══════════════════════════════════════════════════════════
+
+async function gerarInteligente() {
+    const btn = event.target.closest('button');
+    const qtd = document.getElementById('qtdJogos').value;
+    const container = document.getElementById('resultadoInteligente');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processando pipeline...';
+    container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-warning" role="status"></div><p class="mt-2 text-muted">Executando 9 diretrizes técnicas...</p></div>';
+
+    try {
+        const resp = await fetch('/gerar-inteligente', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ qtd: parseInt(qtd) })
+        });
+        const data = await resp.json();
+
+        if (data.erro) {
+            container.innerHTML = `<div class="alert alert-danger">${data.erro}</div>`;
+            return;
+        }
+
+        let html = '<div class="row g-3">';
+        data.jogos.forEach((jogo, idx) => {
+            const scoreClass = jogo.score_final >= 75 ? 'elite' : (jogo.score_final >= 55 ? 'bom' : 'regular');
+            html += `
+            <div class="col-md-6 col-lg-4">
+                <div class="jogo-card jogo-${scoreClass}">
+                    <div class="jogo-header">
+                        <span class="jogo-rank">#${idx + 1}</span>
+                        <span class="jogo-classificacao">${jogo.classificacao}</span>
+                    </div>
+                    <div class="dezenas-container my-3">
+                        ${jogo.jogo.map(n => `<span class="dezena-ball dezena-acerto">${n.toString().padStart(2, '0')}</span>`).join('')}
+                    </div>
+                    <div class="jogo-score">
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: ${jogo.score_final}%"></div>
+                        </div>
+                        <span class="score-label">${jogo.score_final}/100 pts</span>
+                    </div>
+                    <div class="jogo-meta mt-2">
+                        <span class="badge" style="background: rgba(0,184,148,0.12); color: var(--accent-green);">${jogo.diretrizes_aprovadas}/${jogo.total_diretrizes} diretrizes</span>
+                        <span class="badge" style="background: rgba(212,160,23,0.12); color: var(--accent-gold);">Soma: ${jogo.jogo.reduce((a,b) => a+b, 0)}</span>
+                    </div>
+                </div>
+            </div>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    } catch (e) {
+        container.innerHTML = `<div class="alert alert-danger">Erro: ${e.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-cpu-fill"></i> Gerar LotoMind';
+    }
+}
+
+// ═══════════════════════════════════════════════════════════
+// ANALISADOR DE JOGO
+// ═══════════════════════════════════════════════════════════
+
+async function analisarJogo() {
+    const input = document.getElementById('inputAnalisar').value.trim();
+    const container = document.getElementById('resultadoAnalise');
+    const nums = input.split(/[\s,]+/).map(n => parseInt(n)).filter(n => !isNaN(n));
+
+    if (nums.length !== 6) {
+        container.innerHTML = '<div class="alert alert-warning">Digite exatamente 6 números separados por espaço.</div>';
+        return;
+    }
+
+    container.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-warning"></div> Analisando...</div>';
+
+    try {
+        const resp = await fetch('/api/analise-inteligente', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ numeros: nums })
+        });
+        const data = await resp.json();
+
+        if (data.erro) {
+            container.innerHTML = `<div class="alert alert-danger">${data.erro}</div>`;
+            return;
+        }
+
+        const d = data.detalhes;
+        let html = `
+        <div class="analise-resultado">
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <div class="score-grande text-center">
+                        <div class="score-numero">${data.score_final}</div>
+                        <div class="score-max">/100</div>
+                        <div class="mt-1">${data.classificacao}</div>
+                        <div class="small text-muted mt-1">${data.diretrizes_aprovadas}/${data.total_diretrizes} diretrizes aprovadas</div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <canvas id="chartRadar" height="220"></canvas>
+                </div>
+            </div>
+            <div class="row g-2 mt-3">`;
+
+        // Cards de cada diretriz
+        const diretrizes = [
+            { key: 'hipergeometrica', nome: '📊 Hipergeométrica', campo: 'no_pico' },
+            { key: 'entropia', nome: '🔀 Entropia Shannon', campo: 'aprovado' },
+            { key: 'pearson', nome: '📐 Pearson χ²', campo: 'aprovado' },
+            { key: 'clusterizacao', nome: '🎯 Clusterização', campo: 'aprovado' },
+            { key: 'benford', nome: '📈 Lei de Benford', campo: 'aprovado' },
+            { key: 'coocorrencia', nome: '🔗 Coocorrência', campo: 'aprovado' },
+            { key: 'rolling_windows', nome: '📉 Rolling Windows', campo: 'aprovado' },
+            { key: 'decaimento', nome: '⏳ Decaimento', campo: 'aprovado' },
+            { key: 'restricao_dimensional', nome: '⚖️ Restrição', campo: 'aprovado' },
+        ];
+
+        diretrizes.forEach(dir => {
+            const info = d[dir.key] || {};
+            const aprovado = info[dir.campo] || false;
+            const badge = aprovado ? '✅' : '❌';
+            const borderColor = aprovado ? 'rgba(0,184,148,0.3)' : 'rgba(225,112,85,0.3)';
+            html += `
+                <div class="col-md-4 col-6">
+                    <div class="mini-diretriz" style="border-color: ${borderColor}">
+                        <span>${badge} ${dir.nome}</span>
+                    </div>
+                </div>`;
+        });
+
+        html += '</div></div>';
+        container.innerHTML = html;
+
+        // Render radar chart
+        renderRadarAnalise(data);
+
+    } catch (e) {
+        container.innerHTML = `<div class="alert alert-danger">Erro: ${e.message}</div>`;
+    }
+}
+
+function renderRadarAnalise(data) {
+    const ctx = document.getElementById('chartRadar');
+    if (!ctx) return;
+
+    const d = data.detalhes;
+    const labels = ['Hipergeom.', 'Entropia', 'Pearson', 'Cluster.', 'Benford', 'Coocorrência', 'Rolling W.', 'Decaimento', 'Restrição'];
+    const values = [
+        d.hipergeometrica?.score || 0,
+        d.entropia?.aprovado ? 12 : 0,
+        d.pearson?.score || 0,
+        d.clusterizacao?.aprovado ? 13 : 0,
+        d.benford?.score || 0,
+        d.coocorrencia?.score || 0,
+        d.rolling_windows?.score || 0,
+        d.decaimento?.score || 0,
+        d.restricao_dimensional?.aprovado ? 10 : 0,
+    ];
+
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Score',
+                data: values,
+                backgroundColor: 'rgba(212,160,23,0.15)',
+                borderColor: '#d4a017',
+                borderWidth: 2,
+                pointBackgroundColor: '#d4a017',
+                pointBorderColor: '#0f1729',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 15,
+                    ticks: {
+                        display: false,
+                    },
+                    grid: { color: 'rgba(255,255,255,0.06)' },
+                    pointLabels: {
+                        color: 'rgba(232,234,240,0.6)',
+                        font: { size: 10, family: 'Inter' },
+                    },
+                    angleLines: { color: 'rgba(255,255,255,0.06)' },
+                }
+            }
+        }
+    });
+}
+</script>
+{% endif %}
+{% endblock %}

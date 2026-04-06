@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}LotoMind — Lotofácil Estatísticas{% endblock %}
+{% block page_title %}<i class="bi bi-bar-chart-fill"></i> Lotofácil — Estatísticas{% endblock %}
+
+{% block content %}
+{% if erro %}
+<div class="alert alert-danger text-center">
+    <h4><i class="bi bi-exclamation-triangle"></i> Erro ao carregar dados</h4>
+</div>
+{% else %}
+
+<!-- Fixos da Semana -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-pin-angle-fill" style="color: #ffa726"></i> Fixos da Semana</h5>
+        <div class="row g-3">
+            {% for fixo in fixos %}
+            <div class="col-md-2 col-4">
+                <div class="fixo-card text-center p-3">
+                    <span class="dezena-ball dezena-acerto-loto">{{ '%02d' % fixo.numero }}</span>
+                    <div class="mt-2">
+                        <strong>{{ fixo.frequencia }}×</strong>
+                        <br><small class="text-muted">{{ fixo.percentual }}%</small>
+                        <br><span class="badge {% if tendencias[fixo.numero] == '📈 Alta' %}bg-success{% elif tendencias[fixo.numero] == '📉 Queda' %}bg-danger{% else %}bg-secondary{% endif %} mt-1">{{ tendencias[fixo.numero] }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Ciclos de Atraso -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-clock-history" style="color: var(--accent-gold)"></i> Dezenas Mais Atrasadas</h5>
+        <div class="row g-2">
+            {% for dezena, atraso in ciclos %}
+            <div class="col-md-2 col-4">
+                <div class="atraso-card text-center">
+                    <span class="dezena-ball dezena-fria small-ball">{{ '%02d' % dezena }}</span>
+                    <div class="mt-1"><strong>{{ atraso }}</strong> <small class="text-muted d-block">concursos</small></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Paridade -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-symmetry-horizontal"></i> Distribuição de Paridade</h5>
+        <div class="row g-2">
+            {% for combo, freq in paridade_det.items() %}
+            <div class="col-md-2 col-4">
+                <div class="param-card text-center">
+                    <div class="param-value">{{ combo }}</div>
+                    <div class="param-sub">{{ freq }}×</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Probabilidade Chart -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-percent"></i> Probabilidade Histórica por Dezena</h5>
+        <canvas id="chartProb" height="100"></canvas>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if not erro %}
+<script>
+const probabilidades = {{ probabilidades | tojson }};
+document.addEventListener('DOMContentLoaded', () => {
+    const ctx = document.getElementById('chartProb').getContext('2d');
+    const sorted = [...probabilidades].sort((a, b) => a.Dezena - b.Dezena);
+    const colors = sorted.map(d => {
+        if (d.Chance.includes('Alta')) return '#00d084';
+        if (d.Chance.includes('Média')) return '#ffa726';
+        return '#4ecdc4';
+    });
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: sorted.map(d => d.Dezena.toString().padStart(2, '0')),
+            datasets: [{ label: 'Probabilidade (%)', data: sorted.map(d => d.Probabilidade), backgroundColor: colors, borderRadius: 5 }]
+        },
+        options: {
+            responsive: true, plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: 'rgba(232,234,240,0.4)' }, grid: { display: false } },
+                y: { ticks: { color: 'rgba(232,234,240,0.3)' }, grid: { color: 'rgba(255,255,255,0.03)' } },
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

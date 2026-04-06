@@ -1,0 +1,555 @@
+mvn.cmd : WARNING: A 
+restricted method in 
+java.lang.System has 
+been called
+No linha:1 
+caractere:99
++ ... mvn.cmd"" 
+2>nul" | 
+Select-Object -First 
+1); & $m compile 2>&1 
+| Out-F ...
++                     
+                      
+      
+~~~~~~~~~~~~~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (WARNING: A   
+  rest...has been     
+called:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+WARNING: java.lang.Sys
+tem::load has been 
+called by org.fusesour
+ce.jansi.internal.Jans
+iLoader in an unnamed 
+module (file:/C:/Progr
+am%20Files/JetBrains/I
+ntelliJ%20IDEA%202024.
+3.5/id/IntelliJ%20IDEA
+%202024.3.5/plugins/ma
+ven/lib/maven3/lib/jan
+si-2.4.1.jar)
+WARNING: Use --enable-
+native-access=ALL-UNNA
+MED to avoid a 
+warning for callers 
+in this module
+WARNING: Restricted 
+methods will be 
+blocked in a future 
+release unless native 
+access is enabled
+
+WARNING: A terminally 
+deprecated method in 
+sun.misc.Unsafe has 
+been called
+WARNING: sun.misc.Unsa
+fe::objectFieldOffset 
+has been called by com
+.google.common.util.co
+ncurrent.AbstractFutur
+e$UnsafeAtomicHelper (
+file:/C:/Program%20Fil
+es/JetBrains/IntelliJ%
+20IDEA%202024.3.5/id/I
+ntelliJ%20IDEA%202024.
+3.5/plugins/maven/lib/
+maven3/lib/guava-33.2.
+1-jre.jar)
+WARNING: Please 
+consider reporting 
+this to the 
+maintainers of class c
+om.google.common.util.
+concurrent.AbstractFut
+ure$UnsafeAtomicHelper
+WARNING: sun.misc.Unsa
+fe::objectFieldOffset 
+will be removed in a 
+future release
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.lotterygateway:lottery-gateway >-----------------
+[INFO] Building LotteryGateway 1.0.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ lottery-gateway ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ lottery-gateway ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 25 source files with javac [debug parameters release 17] to target\classes
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/config/SecurityConfig.java:[29,43] variable jwtAuthenticationFilter not initialized in the default constructor
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/security/JwtTokenProvider.java:[69,13] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.security.JwtTokenProvider
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[31,64] cannot find symbol
+  symbol:   method getEmail()
+  location: variable request of type com.lotterygateway.dto.LoginRequest
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[34,21] cannot find symbol
+  symbol:   method getActive()
+  location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[38,45] cannot find symbol
+  symbol:   method getPassword()
+  location: variable request of type com.lotterygateway.dto.LoginRequest
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[38,68] cannot find symbol
+  symbol:   method getPasswordHash()
+  location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[42,62] cannot find symbol
+  symbol:   method getEmail()
+  location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[42,82] cannot find symbol
+  symbol:   method getRole()
+  location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[43,9] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.service.AuthService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[43,63] cannot find symbol
+  symbol:   method getEmail()
+  location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[45,29] cannot find symbol
+  symbol:   method builder()
+  location: class com.lotterygateway.dto.LoginResponse
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[47,31] cannot find symbol
+  symbol:   method getEmail()
+  location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[48,34] cannot find symbol
+  symbol:   method getFullName()
+  location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[49,30] cannot find symbol
+  symbol:   method getRole()
+  location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[57,52] cannot find symbol
+  symbol:   method getEmail()
+  location: variable request of type com.lotterygateway.dto.RegisterRequest
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[58,81] cannot find symbol
+  symbol:   method getEmail()
+  location: variable request of type com.lotterygateway.dto.RegisterRequest
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[61,34] cannot find symbol
+  symbol:   method builder()
+  location: class com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[62,31] cannot find symbol
+  symbol:   method getEmail()
+  location: variable request of type com.lotterygateway.dto.RegisterRequest
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[63,61] cannot find symbol
+  symbol:   method getPassword()
+  location: variable request of type com.lotterygateway.dto.RegisterRequest
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[64,34] cannot find symbol
+  symbol:   method getFullName()
+  location: variable request of type com.lotterygateway.dto.RegisterRequest
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[69,9] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.service.AuthService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[69,56] cannot find symbol
+  symbol:   method getEmail()
+  location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[71,62] cannot find symbol
+  symbol:   method getEmail()
+  location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[71,82] cannot find symbol
+  symbol:   method getRole()
+  location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[73,29] cannot find symbol
+  symbol:   method builder()
+  location: class com.lotterygateway.dto.LoginResponse
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[75,31] cannot find symbol
+  symbol:   method getEmail()
+  location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[76,34] cannot find symbol
+  symbol:   method getFullName()
+  location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[77,30] cannot find symbol
+  symbol:   method getRole()
+  location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/controller/EstatisticaController.java:[46,9] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.controller.EstatisticaController
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/controller/EstatisticaController.java:[55,59] cannot find symbol
+  symbol:   method builder()
+  location: class com.lotterygateway.dto.EstatisticaResponse
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/controller/EstatisticaController.java:[71,9] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.controller.EstatisticaController
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/controller/EstatisticaController.java:[89,9] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.controller.EstatisticaController
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/controller/EstatisticaController.java:[105,9] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.controller.EstatisticaController
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[56,64] cannot find symbol
+  symbol:   method getNumero()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[56,81] cannot find symbol
+  symbol:   method getTipoLoteria()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[58,38] cannot find symbol
+  symbol:   method getNumero()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[58,77] cannot find symbol
+  symbol:   method getTipoLoteria()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[61,32] cannot find symbol
+  symbol:   method getDezenas()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[65,37] cannot find symbol
+  symbol:   method builder()
+  location: class com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[66,28] cannot find symbol
+  symbol:   method getNumero()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[67,33] cannot find symbol
+  symbol:   method getDataSorteio()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[67,64] cannot find symbol
+  symbol:   method getDataSorteio()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[69,33] cannot find symbol
+  symbol:   method getTipoLoteria()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[69,64] cannot find symbol
+  symbol:   method getTipoLoteria()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[70,26] cannot find symbol
+  symbol:   method getSoma()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[70,50] cannot find symbol
+  symbol:   method getSoma()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[70,66] cannot find symbol
+  symbol:   method getDezenas()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[71,27] cannot find symbol
+  symbol:   method getPares()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[71,52] cannot find symbol
+  symbol:   method getPares()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[71,75] cannot find symbol
+  symbol:   method getDezenas()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[72,29] cannot find symbol
+  symbol:   method getImpares()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[72,56] cannot find symbol
+  symbol:   method getImpares()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[72,81] cannot find symbol
+  symbol:   method getDezenas()
+  location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[76,9] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.service.ConcursoService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[76,55] cannot find symbol
+  symbol:   method getNumero()
+  location: variable saved of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[76,74] cannot find symbol
+  symbol:   method getTipoLoteria()
+  location: variable saved of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[83,48] cannot find symbol
+  symbol:   method getDezenas()
+  location: variable c of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[88,27] cannot find symbol
+  symbol:   method builder()
+  location: class com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[89,26] cannot find symbol
+  symbol:   method getNumero()
+  location: variable c of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[90,31] cannot find symbol
+  symbol:   method getDataSorteio()
+  location: variable c of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[92,31] cannot find symbol
+  symbol:   method getTipoLoteria()
+  location: variable c of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[93,24] cannot find symbol
+  symbol:   method getSoma()
+  location: variable c of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[94,25] cannot find symbol
+  symbol:   method getPares()
+  location: variable c of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[95,27] cannot find symbol
+  symbol:   method getImpares()
+  location: variable c of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[69,9] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[80,13] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[85,13] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[91,13] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[100,9] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[113,13] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[118,13] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[124,13] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/exception/GlobalExceptionHandler.java:[34,9] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.exception.GlobalExceptionHandler
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/exception/GlobalExceptionHandler.java:[58,9] cannot find symbol
+  symbol:   variable log
+  location: class com.lotterygateway.exception.GlobalExceptionHandler
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/exception/GlobalExceptionHandler.java:[65,44] cannot find symbol
+  symbol:   method builder()
+  location: class com.lotterygateway.dto.ErrorResponse
+[INFO] 75 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  5.670 s
+[INFO] Finished at: 2026-03-15T17:05:05-03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.13.0:compile (default-compile) on project lottery-gateway: Compilation failure: Compilation failure: 
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/config/SecurityConfig.java:[29,43] variable jwtAuthenticationFilter not initialized in the default constructor
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/security/JwtTokenProvider.java:[69,13] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.security.JwtTokenProvider
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[31,64] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable request of type com.lotterygateway.dto.LoginRequest
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[34,21] cannot find symbol
+[ERROR]   symbol:   method getActive()
+[ERROR]   location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[38,45] cannot find symbol
+[ERROR]   symbol:   method getPassword()
+[ERROR]   location: variable request of type com.lotterygateway.dto.LoginRequest
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[38,68] cannot find symbol
+[ERROR]   symbol:   method getPasswordHash()
+[ERROR]   location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[42,62] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[42,82] cannot find symbol
+[ERROR]   symbol:   method getRole()
+[ERROR]   location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[43,9] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.service.AuthService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[43,63] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[45,29] cannot find symbol
+[ERROR]   symbol:   method builder()
+[ERROR]   location: class com.lotterygateway.dto.LoginResponse
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[47,31] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[48,34] cannot find symbol
+[ERROR]   symbol:   method getFullName()
+[ERROR]   location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[49,30] cannot find symbol
+[ERROR]   symbol:   method getRole()
+[ERROR]   location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[57,52] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable request of type com.lotterygateway.dto.RegisterRequest
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[58,81] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable request of type com.lotterygateway.dto.RegisterRequest
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[61,34] cannot find symbol
+[ERROR]   symbol:   method builder()
+[ERROR]   location: class com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[62,31] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable request of type com.lotterygateway.dto.RegisterRequest
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[63,61] cannot find symbol
+[ERROR]   symbol:   method getPassword()
+[ERROR]   location: variable request of type com.lotterygateway.dto.RegisterRequest
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[64,34] cannot find symbol
+[ERROR]   symbol:   method getFullName()
+[ERROR]   location: variable request of type com.lotterygateway.dto.RegisterRequest
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[69,9] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.service.AuthService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[69,56] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[71,62] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[71,82] cannot find symbol
+[ERROR]   symbol:   method getRole()
+[ERROR]   location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[73,29] cannot find symbol
+[ERROR]   symbol:   method builder()
+[ERROR]   location: class com.lotterygateway.dto.LoginResponse
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[75,31] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[76,34] cannot find symbol
+[ERROR]   symbol:   method getFullName()
+[ERROR]   location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/AuthService.java:[77,30] cannot find symbol
+[ERROR]   symbol:   method getRole()
+[ERROR]   location: variable usuario of type com.lotterygateway.entity.Usuario
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/controller/EstatisticaController.java:[46,9] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.controller.EstatisticaController
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/controller/EstatisticaController.java:[55,59] cannot find symbol
+[ERROR]   symbol:   method builder()
+[ERROR]   location: class com.lotterygateway.dto.EstatisticaResponse
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/controller/EstatisticaController.java:[71,9] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.controller.EstatisticaController
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/controller/EstatisticaController.java:[89,9] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.controller.EstatisticaController
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/controller/EstatisticaController.java:[105,9] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.controller.EstatisticaController
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[56,64] cannot find symbol
+[ERROR]   symbol:   method getNumero()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[56,81] cannot find symbol
+[ERROR]   symbol:   method getTipoLoteria()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[58,38] cannot find symbol
+[ERROR]   symbol:   method getNumero()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[58,77] cannot find symbol
+[ERROR]   symbol:   method getTipoLoteria()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[61,32] cannot find symbol
+[ERROR]   symbol:   method getDezenas()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[65,37] cannot find symbol
+[ERROR]   symbol:   method builder()
+[ERROR]   location: class com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[66,28] cannot find symbol
+[ERROR]   symbol:   method getNumero()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[67,33] cannot find symbol
+[ERROR]   symbol:   method getDataSorteio()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[67,64] cannot find symbol
+[ERROR]   symbol:   method getDataSorteio()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[69,33] cannot find symbol
+[ERROR]   symbol:   method getTipoLoteria()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[69,64] cannot find symbol
+[ERROR]   symbol:   method getTipoLoteria()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[70,26] cannot find symbol
+[ERROR]   symbol:   method getSoma()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[70,50] cannot find symbol
+[ERROR]   symbol:   method getSoma()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[70,66] cannot find symbol
+[ERROR]   symbol:   method getDezenas()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[71,27] cannot find symbol
+[ERROR]   symbol:   method getPares()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[71,52] cannot find symbol
+[ERROR]   symbol:   method getPares()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[71,75] cannot find symbol
+[ERROR]   symbol:   method getDezenas()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[72,29] cannot find symbol
+[ERROR]   symbol:   method getImpares()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[72,56] cannot find symbol
+[ERROR]   symbol:   method getImpares()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[72,81] cannot find symbol
+[ERROR]   symbol:   method getDezenas()
+[ERROR]   location: variable dto of type com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[76,9] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.service.ConcursoService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[76,55] cannot find symbol
+[ERROR]   symbol:   method getNumero()
+[ERROR]   location: variable saved of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[76,74] cannot find symbol
+[ERROR]   symbol:   method getTipoLoteria()
+[ERROR]   location: variable saved of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[83,48] cannot find symbol
+[ERROR]   symbol:   method getDezenas()
+[ERROR]   location: variable c of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[88,27] cannot find symbol
+[ERROR]   symbol:   method builder()
+[ERROR]   location: class com.lotterygateway.dto.ConcursoDTO
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[89,26] cannot find symbol
+[ERROR]   symbol:   method getNumero()
+[ERROR]   location: variable c of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[90,31] cannot find symbol
+[ERROR]   symbol:   method getDataSorteio()
+[ERROR]   location: variable c of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[92,31] cannot find symbol
+[ERROR]   symbol:   method getTipoLoteria()
+[ERROR]   location: variable c of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[93,24] cannot find symbol
+[ERROR]   symbol:   method getSoma()
+[ERROR]   location: variable c of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[94,25] cannot find symbol
+[ERROR]   symbol:   method getPares()
+[ERROR]   location: variable c of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/ConcursoService.java:[95,27] cannot find symbol
+[ERROR]   symbol:   method getImpares()
+[ERROR]   location: variable c of type com.lotterygateway.entity.Concurso
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[69,9] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[80,13] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[85,13] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[91,13] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[100,9] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[113,13] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[118,13] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/service/PythonIntegrationService.java:[124,13] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.service.PythonIntegrationService
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/exception/GlobalExceptionHandler.java:[34,9] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.exception.GlobalExceptionHandler
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/exception/GlobalExceptionHandler.java:[58,9] cannot find symbol
+[ERROR]   symbol:   variable log
+[ERROR]   location: class com.lotterygateway.exception.GlobalExceptionHandler
+[ERROR] /C:/Users/widso/OneDrive/Documentos/Projetos/LotteryGateway/src/main/java/com/lotterygateway/exception/GlobalExceptionHandler.java:[65,44] cannot find symbol
+[ERROR]   symbol:   method builder()
+[ERROR]   location: class com.lotterygateway.dto.ErrorResponse
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

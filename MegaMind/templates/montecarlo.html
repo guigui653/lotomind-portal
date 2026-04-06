@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}MegaMind — Simulação Monte Carlo{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 px-3">
+        <h2><i class="bi bi-lightning-charge-fill" style="color: var(--accent-gold);"></i> Simulação Mega-Sena Monte Carlo</h2>
+        <p class="text-muted">Motor Estocástico com 1.000.000 de testes parametrizados pelas frequências históricas.</p>
+    </div>
+</div>
+
+{% if req_erro %}
+<div class="alert alert-warning mb-4"><i class="bi bi-exclamation-triangle"></i> {{ req_erro }}</div>
+{% endif %}
+
+<div class="row">
+    <!-- Formulário de Entrada -->
+    <div class="col-md-4">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title text-info"><i class="bi bi-joystick"></i> Configurar Simulação</h5>
+                <p class="small text-muted mb-4">Insira seu jogo alvo de 6 dezenas para testá-lo em 1 Milhão de cenários possíveis.</p>
+                
+                <form method="POST" action="/montecarlo">
+                    <div class="mb-3">
+                        <label for="jogoInput" class="form-label text-light">Seu Jogo (6 dezenas):</label>
+                        <input type="text" class="form-control form-control-lg text-center" id="jogoInput" name="jogo" 
+                               placeholder="Ex: 5 12 23 34 45 56" required
+                               {% if jogo %}value="{{ jogo|join(' ') }}"{% endif %} autocomplete="off">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="qtdSimulacoes" class="form-label text-light">Quantidade de Simulações:</label>
+                        <select class="form-select text-center" id="qtdSimulacoes" name="qtd_simulacoes">
+                            <option value="1000000" selected>1.000.000 de Sorteios (Extremo)</option>
+                            <option value="500000">500.000 de Sorteios (Alto)</option>
+                            <option value="100000">100.000 de Sorteios (Rápido)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100 btn-lg text-dark fw-bold" id="btnSimular">
+                        <i class="bi bi-play-circle-fill"></i> Iniciar Simulação Pesada
+                    </button>
+                    
+                    <div class="mt-3 text-center small text-muted" id="loadingSim" style="display: none;">
+                        <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                        Processando motor Gumbel-Max (NumPy)...
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados -->
+    <div class="col-md-8">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-bar-chart-steps text-success"></i> Relatório Analítico de Probabilidade Empírica</h5>
+                
+                {% if resultado %}
+                    <div class="alert mt-3" style="background: rgba(0,255,100,0.1); border-left: 4px solid var(--accent-green);">
+                        <i class="bi bi-cpu"></i> O teste de <strong>{{ "{:,}".format(resultado.simulacoes).replace(',', '.') }}</strong> Sorteios simulados foi concluído em <strong>{{ resultado.tempo_segundos }} segundos</strong>.
+                    </div>
+                    
+                    <div class="text-center my-4">
+                        <h6 class="text-muted">Jogo Analisado</h6>
+                        <div>
+                            {% for d in resultado.jogo %}
+                                <span class="dezena-ball dezena-hot">{{ '%02d' % (d|int) }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Probabilidades e Acertos -->
+                    <div class="row g-3 mt-4 text-center">
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded shadow-sm" style="background: rgba(41,128,185,0.15); border-color: rgba(41,128,185,0.3) !important;">
+                                <h6 style="color: var(--accent-blue);">Hits QUADRA (4)</h6>
+                                <h4>{{ "{:,}".format(resultado.acertos.quadras).replace(',', '.') }} <small class="text-muted fs-6">vezes</small></h4>
+                                <span class="badge bg-secondary w-100">{{ "%.5f"|format(resultado.probabilidades.quadra_pct) }}%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded shadow-sm" style="background: rgba(212,160,23,0.15); border-color: rgba(212,160,23,0.3) !important;">
+                                <h6 style="color: var(--accent-gold);">Hits QUINA (5)</h6>
+                                <h4>{{ "{:,}".format(resultado.acertos.quinas).replace(',', '.') }} <small class="text-muted fs-6">vezes</small></h4>
+                                <span class="badge bg-secondary w-100">{{ "%.6f"|format(resultado.probabilidades.quina_pct) }}%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded shadow-sm" style="background: rgba(39,174,96,0.15); border-color: rgba(39,174,96,0.3) !important;">
+                                <h6 style="color: var(--accent-green);">Hits SENA (6)</h6>
+                                <h4>{{ "{:,}".format(resultado.acertos.senas).replace(',', '.') }} <small class="text-muted fs-6">vezes</small></h4>
+                                <span class="badge bg-secondary w-100">{{ "%.7f"|format(resultado.probabilidades.sena_pct) }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Financeiro VPL -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card bg-dark border-secondary">
+                                <div class="card-body">
+                                    <h6 class="text-muted"><i class="bi bi-wallet2 text-success"></i> VPL e Retorno Teórico</h6>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Investimento (R$ 5/jogo):</span>
+                                        <strong class="text-danger">R$ {{ "{:,.2f}".format(resultado.financeiro_teorico.investimento).replace(',', 'X').replace('.', ',').replace('X', '.') }}</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Retorno (Prêmios Estimados):</span>
+                                        <strong class="text-success">R$ {{ "{:,.2f}".format(resultado.financeiro_teorico.retorno).replace(',', 'X').replace('.', ',').replace('X', '.') }}</strong>
+                                    </div>
+                                    <hr class="border-secondary">
+                                    <div class="d-flex justify-content-between">
+                                        <span>ROI Total:</span>
+                                        <strong class="{% if resultado.financeiro_teorico.roi_pct > 0 %}text-success{% else %}text-danger{% endif %}">{{ resultado.financeiro_teorico.roi_pct }}%</strong>
+                                    </div>
+                                    <div class="small text-muted mt-2 text-center" style="font-size: 0.65rem;">
+                                        * A simulação financeira assume premiações fixas de R$1mil (Quad), R$50mil (Quin) e R$30mi (Sena). Valores puramente ilustrativos para análise de break-even estocástico.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                {% else %}
+                    <div class="d-flex justify-content-center align-items-center h-100 mt-5">
+                        <div class="text-center text-muted">
+                            <i class="bi bi-cpu display-1 opacity-25"></i>
+                            <h5 class="mt-3">Aguardando Parâmetros</h5>
+                            <p class="small text-muted">Aguardando a execução da simulação para exibir as probabilidades empíricas de convergência.<br>O processo gasta cerca de 0,3s por 1.000.000 matrizes.</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function() {
+        document.getElementById('btnSimular').disabled = true;
+        document.getElementById('loadingSim').style.display = 'block';
+    });
+</script>
+{% endblock %}

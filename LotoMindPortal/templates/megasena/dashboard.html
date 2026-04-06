@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+{% block title %}MegaMind — Dashboard Mega-Sena{% endblock %}
+
+{% block content %}
+{% if erro %}
+<div class="alert alert-danger text-center">
+    <h4><i class="bi bi-exclamation-triangle"></i> Erro ao carregar dados da Caixa</h4>
+    <p>Verifique sua conexão e tente novamente.</p>
+    <a href="/atualizar" class="btn btn-outline-light"><i class="bi bi-arrow-clockwise"></i> Tentar Novamente</a>
+</div>
+{% else %}
+
+<!-- Dashboard Header -->
+<div class="dashboard-header">
+    <h1><i class="bi bi-stars"></i> Dashboard Mega-Sena</h1>
+    <div class="subtitle">Sistema Inteligente de Análise • Frequências • Quadrantes • Gerador Elite</div>
+</div>
+
+<!-- KPI Metric Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-icon"><i class="bi bi-hash"></i></div>
+            <div class="metric-body">
+                <div class="metric-label">Último Concurso</div>
+                <div class="metric-value">#{{ ultimo['Concurso'] }}</div>
+                <div class="metric-sub">{{ ultimo['Data'] }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-icon"><i class="bi bi-fire"></i></div>
+            <div class="metric-body">
+                <div class="metric-label">Nº Mais Quente</div>
+                <div class="metric-value">{{ '%02d' % top10[0][0] }}</div>
+                <div class="metric-sub">{{ top10[0][1] }}× nos últimos {{ total_jogos }} jogos</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-icon"><i class="bi bi-pie-chart-fill"></i></div>
+            <div class="metric-body">
+                <div class="metric-label">Pares / Ímpares</div>
+                <div class="metric-value">{{ total_pares }} / {{ total_impares }}</div>
+                <div class="metric-sub">Total de dezenas</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-icon"><i class="bi bi-database-fill"></i></div>
+            <div class="metric-body">
+                <div class="metric-label">Jogos Analisados</div>
+                <div class="metric-value">{{ total_jogos }}</div>
+                <div class="metric-sub">{{ total_jogos * 6 }} dezenas processadas</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Último Sorteio -->
+<div class="card glass-card mb-4">
+    <div class="card-body text-center">
+        <h5 class="card-title"><i class="bi bi-trophy-fill" style="color: var(--accent-gold)"></i> Último Sorteio — Concurso #{{ ultimo['Concurso'] }}</h5>
+        <div class="dezenas-container mt-3">
+            {% for d in ultimo['Dezenas'] %}
+            <span class="dezena-ball dezena-acerto">{{ '%02d' % d }}</span>
+            {% endfor %}
+        </div>
+        <div class="mt-2">
+            <span class="badge" style="background: rgba(212,160,23,0.15); color: var(--accent-gold);">Soma: {{ ultimo['Soma'] }}</span>
+            <span class="badge" style="background: rgba(0,184,148,0.15); color: var(--accent-green);">Pares: {{ ultimo['Pares'] }}</span>
+            <span class="badge" style="background: rgba(41,128,185,0.15); color: var(--accent-blue);">Ímpares: {{ ultimo['Impares'] }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Gráfico Frequência 60 Dezenas -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card glass-card">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-bar-chart-fill" style="color: var(--accent-gold)"></i> Frequência das 60 Dezenas</h5>
+                <p class="text-muted small">Últimos {{ total_jogos }} concursos — quanto maior, mais frequente</p>
+                <canvas id="chartFrequencia" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row: Par/Ímpar + Quadrantes + Top 10 -->
+<div class="row g-4 mb-4">
+    <!-- Par / Ímpar -->
+    <div class="col-md-4">
+        <div class="card glass-card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title"><i class="bi bi-pie-chart-fill" style="color: var(--accent-green)"></i> Pares vs Ímpares</h5>
+                <canvas id="chartParImpar" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quadrantes -->
+    <div class="col-md-4">
+        <div class="card glass-card h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title"><i class="bi bi-grid-3x3-gap-fill" style="color: var(--accent-blue)"></i> Quadrantes do Volante</h5>
+                <canvas id="chartQuadrantes" height="200"></canvas>
+                <div class="mt-3">
+                    {% for nome, info in quadrantes.items() %}
+                    <span class="badge me-1 mb-1" style="background: rgba(212,160,23,0.12); color: var(--accent-gold); border: 1px solid rgba(212,160,23,0.2);">{{ nome }}: {{ info.percentual }}%</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top 10 Quentes -->
+    <div class="col-md-4">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-fire" style="color: #e17055"></i> Top 10 Mais Quentes</h5>
+                <div class="list-group list-group-flush bg-transparent">
+                    {% for num, freq in top10 %}
+                    <div class="list-group-item bg-transparent d-flex justify-content-between align-items-center" style="border-color: rgba(255,255,255,0.04);">
+                        <span>
+                            <span class="dezena-ball dezena-hot small-ball">{{ '%02d' % num }}</span>
+                        </span>
+                        <span class="badge rounded-pill" style="background: linear-gradient(135deg, #e17055, #d63031);">{{ freq }}×</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráfico de Linha: Evolução da Soma -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-graph-up" style="color: var(--accent-green)"></i> Evolução da Soma das Dezenas</h5>
+        <p class="text-muted small">Acompanhe o comportamento da soma ao longo dos concursos • Linha tracejada = média ({{ media_soma }})</p>
+        <canvas id="chartSomaEvolucao" height="80"></canvas>
+    </div>
+</div>
+
+<!-- Quadrantes do último sorteio -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-grid-fill" style="color: var(--accent-blue)"></i> Quadrantes — Último Sorteio</h5>
+        <div class="row g-3 mt-2">
+            {% for nome, info in quad_ultimo.items() %}
+            <div class="col-md-3">
+                <div class="quadrant-card {% if info.quantidade > 0 %}quadrant-active{% endif %}">
+                    <h6>{{ nome }}</h6>
+                    <div class="quadrant-count">{{ info.quantidade }}</div>
+                    {% for n in info.numeros %}
+                    <span class="dezena-ball small-ball dezena-acerto">{{ '%02d' % n }}</span>
+                    {% endfor %}
+                    {% if info.quantidade == 0 %}
+                    <span class="text-muted small">Nenhuma</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Fixos da Semana -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-pin-angle-fill" style="color: var(--accent-green)"></i> Fixos da Semana — Top 10</h5>
+        <p class="text-muted small">Dezenas mais frequentes nos últimos 7 concursos</p>
+        <div class="row g-2">
+            {% for fixo in fixos %}
+            <div class="col-md-2 col-4">
+                <div class="fixo-card text-center">
+                    <span class="dezena-ball dezena-fixo">{{ '%02d' % fixo.numero }}</span>
+                    <div class="mt-1 small">{{ fixo.frequencia }}× ({{ fixo.percentual }}%)</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Conferidor Rápido -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-check2-circle" style="color: var(--accent-green)"></i> Conferidor Rápido</h5>
+        <p class="text-muted small">Confira seus números contra o último sorteio</p>
+        <div class="row g-3">
+            <div class="col-md-8">
+                <input type="text" class="form-control form-control-lg" id="inputConferir"
+                       placeholder="Digite 6 números separados por espaço (ex: 5 12 23 34 45 56)">
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-success btn-lg w-100" onclick="conferirJogo()">
+                    <i class="bi bi-check-circle"></i> Conferir
+                </button>
+            </div>
+        </div>
+        <div id="resultadoConferir" class="mt-3"></div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if not erro %}
+<script>
+// Dados do servidor
+const freqLabels = {{ freq_labels | tojson }};
+const freqValues = {{ freq_values | tojson }};
+const totalPares = {{ total_pares }};
+const totalImpares = {{ total_impares }};
+const quadrantes = {{ quadrantes | tojson }};
+const somaConcursos = {{ soma_concursos | tojson }};
+const somaValues = {{ soma_values | tojson }};
+const mediaSoma = {{ media_soma }};
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderFrequencia();
+    renderParImpar();
+    renderQuadrantes();
+    renderSomaEvolucao();
+});
+
+function renderFrequencia() {
+    const ctx = document.getElementById('chartFrequencia').getContext('2d');
+    const maxVal = Math.max(...freqValues);
+    const colors = freqValues.map(v => {
+        const ratio = v / maxVal;
+        if (ratio >= 0.8) return '#d4a017';  // Gold — quentes
+        if (ratio >= 0.6) return '#f0c040';  // Light gold
+        if (ratio >= 0.4) return '#00b894';  // Emerald
+        return '#1a3a6e';  // Navy — frios
+    });
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: freqLabels.map(n => n.toString().padStart(2, '0')),
+            datasets: [{
+                label: 'Frequência',
+                data: freqValues,
+                backgroundColor: colors,
+                borderRadius: 5,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+            },
+            scales: {
+                x: {
+                    ticks: { color: 'rgba(232,234,240,0.4)', font: { size: 9, family: 'Inter' } },
+                    grid: { display: false }
+                },
+                y: {
+                    ticks: { color: 'rgba(232,234,240,0.3)', font: { family: 'Inter' } },
+                    grid: { color: 'rgba(255,255,255,0.03)' }
+                },
+            }
+        }
+    });
+}
+
+function renderParImpar() {
+    const ctx = document.getElementById('chartParImpar').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pares', 'Ímpares'],
+            datasets: [{
+                data: [totalPares, totalImpares],
+                backgroundColor: ['#d4a017', '#00b894'],
+                borderWidth: 3,
+                borderColor: '#0f1729',
+            }]
+        },
+        options: {
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'rgba(232,234,240,0.6)',
+                        font: { family: 'Inter', weight: 500 },
+                        padding: 16,
+                    }
+                },
+            }
+        }
+    });
+}
+
+function renderQuadrantes() {
+    const ctx = document.getElementById('chartQuadrantes').getContext('2d');
+    const labels = Object.keys(quadrantes);
+    const values = labels.map(k => quadrantes[k].percentual);
+
+    new Chart(ctx, {
+        type: 'polarArea',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: ['#1a3a6ecc', '#00b894cc', '#d4a017cc', '#e17055cc'],
+                borderWidth: 2,
+                borderColor: '#0f1729',
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'rgba(232,234,240,0.5)',
+                        font: { size: 11, family: 'Inter' }
+                    }
+                },
+            },
+            scales: {
+                r: {
+                    ticks: { display: false },
+                    grid: { color: 'rgba(255,255,255,0.06)' },
+                }
+            }
+        }
+    });
+}
+
+function renderSomaEvolucao() {
+    const ctx = document.getElementById('chartSomaEvolucao').getContext('2d');
+
+    // Plugin para desenhar a linha de média
+    const mediaPlugin = {
+        id: 'mediaLine',
+        afterDraw(chart) {
+            const yScale = chart.scales.y;
+            const ctx = chart.ctx;
+            const y = yScale.getPixelForValue(mediaSoma);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.setLineDash([8, 5]);
+            ctx.strokeStyle = '#d4a017';
+            ctx.lineWidth = 1.5;
+            ctx.moveTo(chart.chartArea.left, y);
+            ctx.lineTo(chart.chartArea.right, y);
+            ctx.stroke();
+
+            ctx.fillStyle = '#d4a017';
+            ctx.font = '11px Inter';
+            ctx.textAlign = 'right';
+            ctx.fillText(`Média: ${mediaSoma}`, chart.chartArea.right - 5, y - 6);
+            ctx.restore();
+        }
+    };
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: somaConcursos.map(n => `#${n}`),
+            datasets: [{
+                label: 'Soma',
+                data: somaValues,
+                borderColor: '#00b894',
+                backgroundColor: 'rgba(0, 184, 148, 0.08)',
+                borderWidth: 2.5,
+                pointBackgroundColor: '#00b894',
+                pointBorderColor: '#0f1729',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 7,
+                fill: true,
+                tension: 0.3,
+            }]
+        },
+        plugins: [mediaPlugin],
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: 'rgba(232,234,240,0.3)',
+                        font: { size: 9, family: 'Inter' },
+                        maxTicksLimit: 20,
+                    },
+                    grid: { color: 'rgba(255,255,255,0.03)' }
+                },
+                y: {
+                    ticks: { color: 'rgba(232,234,240,0.3)', font: { family: 'Inter' } },
+                    grid: { color: 'rgba(255,255,255,0.03)' }
+                },
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index',
+            },
+        }
+    });
+}
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,748 @@
+/* ============================================
+   LotoMind Portal — CSS Premium Unificado
+   Dark mode com sidebar + paleta multi-módulo
+   ============================================ */
+
+:root {
+    --bg-primary: #080e1a;
+    --bg-secondary: #0f1729;
+    --bg-card: rgba(15, 23, 41, 0.88);
+    --border-subtle: rgba(100, 100, 140, 0.15);
+    --accent-green: #00d084;
+    --accent-gold: #d4a017;
+    --accent-blue: #2980b9;
+    --accent-red: #e17055;
+    --accent-orange: #ffa726;
+    --accent-purple: #9b59b6;
+    --text-primary: #e8eaf0;
+    --text-muted: #7a8599;
+    --sidebar-width: 240px;
+    --radius: 16px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Base ─────────────────────────────────── */
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: linear-gradient(180deg, #080e1a 0%, #0f1729 50%, #0a1628 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    margin: 0;
+}
+
+/* ── Auth Pages ──────────────────────────── */
+
+.auth-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at 50% 30%, rgba(0, 208, 132, 0.08) 0%, transparent 60%),
+                linear-gradient(180deg, #080e1a, #0f1729);
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 1rem;
+}
+
+.auth-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 208, 132, 0.12);
+    border-radius: var(--radius);
+    padding: 2.5rem 2rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.auth-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-logo i {
+    font-size: 2.5rem;
+    color: var(--accent-green);
+}
+
+.auth-logo h1 {
+    font-size: 2rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent-green), var(--accent-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0.5rem 0 0.2rem 0;
+}
+
+.auth-logo p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.btn-login {
+    background: linear-gradient(135deg, var(--accent-green), #00b894);
+    border: none;
+    color: #0a0f1a;
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 0.75rem;
+    border-radius: 12px;
+    transition: var(--transition);
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 208, 132, 0.3);
+    color: #0a0f1a;
+}
+
+/* ── Sidebar ─────────────────────────────── */
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    background: rgba(8, 14, 26, 0.97);
+    border-right: 1px solid rgba(100, 100, 140, 0.08);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    transition: var(--transition);
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 1.2rem 1.3rem;
+    font-size: 1.3rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent-green), var(--accent-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    border-bottom: 1px solid rgba(0, 208, 132, 0.08);
+}
+
+.sidebar-brand i {
+    -webkit-text-fill-color: var(--accent-green);
+    font-size: 1.4rem;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 0.5rem 0;
+    overflow-y: auto;
+}
+
+.sidebar-section {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding: 1.2rem 1.3rem 0.4rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.55rem 1.3rem;
+    color: rgba(232, 234, 240, 0.6);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: var(--transition);
+    border-radius: 0;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-link:hover {
+    background: rgba(0, 208, 132, 0.06);
+    color: var(--accent-green);
+    border-left-color: var(--accent-green);
+}
+
+.sidebar-link.active {
+    background: rgba(0, 208, 132, 0.1);
+    color: var(--accent-green);
+    border-left-color: var(--accent-green);
+    font-weight: 700;
+}
+
+.sidebar-footer {
+    padding: 0.5rem 0;
+    border-top: 1px solid rgba(100, 100, 140, 0.08);
+}
+
+/* ── Main Content ────────────────────────── */
+
+.main-content {
+    margin-left: var(--sidebar-width);
+    min-height: 100vh;
+}
+
+/* ── Top Navbar ──────────────────────────── */
+
+.top-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.7rem 1.5rem;
+    background: rgba(8, 14, 26, 0.6);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(100, 100, 140, 0.06);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* ── Dashboard Header ────────────────────── */
+
+.dashboard-header {
+    text-align: center;
+    padding: 20px 0 12px 0;
+}
+
+.dashboard-header h1 {
+    font-size: 2.2rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent-green), var(--accent-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.dashboard-header .subtitle {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+/* ── Glass Cards ─────────────────────────── */
+
+.glass-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(100, 100, 140, 0.08);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    transition: var(--transition);
+}
+
+.glass-card:hover {
+    border-color: rgba(0, 208, 132, 0.18);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+.card-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+/* ── Module Cards (Home) ─────────────────── */
+
+.module-card {
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.module-card:hover {
+    transform: translateY(-6px);
+}
+
+.module-icon {
+    font-size: 3.5rem;
+}
+
+.module-card h3 {
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.lotofacil-card:hover {
+    border-color: rgba(0, 208, 132, 0.3);
+    box-shadow: 0 12px 40px rgba(0, 208, 132, 0.12);
+}
+
+.megasena-card:hover {
+    border-color: rgba(212, 160, 23, 0.3);
+    box-shadow: 0 12px 40px rgba(212, 160, 23, 0.12);
+}
+
+.module-badge-loto {
+    background: rgba(0, 208, 132, 0.12) !important;
+    color: var(--accent-green) !important;
+    border: 1px solid rgba(0, 208, 132, 0.2);
+}
+
+.module-badge-mega {
+    background: rgba(212, 160, 23, 0.12) !important;
+    color: var(--accent-gold) !important;
+    border: 1px solid rgba(212, 160, 23, 0.2);
+}
+
+/* ── KPI Metric Cards ────────────────────── */
+
+.metric-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius);
+    padding: 1.3rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-green), var(--accent-gold));
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.metric-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 35px rgba(0, 208, 132, 0.12);
+}
+
+.metric-icon { font-size: 1.8rem; }
+.metric-label { font-size: 0.72rem; color: rgba(232, 234, 240, 0.5); text-transform: uppercase; letter-spacing: 0.7px; font-weight: 600; }
+.metric-value { font-size: 1.6rem; font-weight: 800; }
+.metric-sub { font-size: 0.75rem; color: var(--accent-green); font-weight: 500; }
+
+/* ── Dezena Balls ────────────────────────── */
+
+.dezenas-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.dezena-ball {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a2340, #0f1729);
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: 2px solid rgba(100, 100, 140, 0.15);
+    transition: var(--transition);
+}
+
+.dezena-ball.small-ball {
+    width: 38px;
+    height: 38px;
+    font-size: 0.78rem;
+}
+
+.dezena-acerto {
+    background: linear-gradient(135deg, var(--accent-gold), #c49000);
+    border-color: var(--accent-gold);
+    color: #0a0f1a;
+    font-weight: 800;
+    box-shadow: 0 0 15px rgba(212, 160, 23, 0.3);
+}
+
+.dezena-acerto-loto {
+    background: linear-gradient(135deg, var(--accent-green), #00b894);
+    border-color: var(--accent-green);
+    color: #0a0f1a;
+    font-weight: 800;
+    box-shadow: 0 0 15px rgba(0, 208, 132, 0.3);
+}
+
+.dezena-hot {
+    background: linear-gradient(135deg, #e17055, #d63031);
+    border-color: #e17055;
+    box-shadow: 0 0 10px rgba(225, 112, 85, 0.3);
+}
+
+.dezena-fria {
+    background: linear-gradient(135deg, var(--accent-blue), #3498db);
+    border-color: var(--accent-blue);
+}
+
+.dezena-fixo {
+    background: linear-gradient(135deg, var(--accent-green), #00d2d3);
+    border-color: var(--accent-green);
+    color: #0a0f1a;
+    font-weight: 800;
+}
+
+/* ── Quadrant/Param/Fixo/Atraso Cards ──── */
+
+.quadrant-card, .param-card, .fixo-card, .atraso-card, .arsenal-card {
+    background: var(--bg-secondary);
+    border: 1px solid rgba(100, 100, 140, 0.08);
+    border-radius: 14px;
+    padding: 1rem;
+    transition: var(--transition);
+}
+
+.quadrant-card:hover, .fixo-card:hover, .atraso-card:hover, .arsenal-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 208, 132, 0.2);
+}
+
+.quadrant-count { font-size: 2rem; font-weight: 900; color: var(--accent-gold); }
+.quadrant-active { border-color: rgba(212, 160, 23, 0.2); }
+.param-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; }
+.param-value { font-size: 1.3rem; font-weight: 800; color: var(--accent-green); }
+.param-sub { font-size: 0.75rem; color: var(--text-muted); }
+
+/* ── Jogo Resultado ──────────────────────── */
+
+.jogo-resultado {
+    background: var(--bg-secondary);
+    border: 1px solid rgba(100, 100, 140, 0.1);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    transition: var(--transition);
+}
+
+.jogo-valido { border-color: var(--accent-green); box-shadow: 0 0 20px rgba(0, 208, 132, 0.1); }
+.jogo-parcial { border-color: var(--accent-gold); box-shadow: 0 0 20px rgba(212, 160, 23, 0.1); }
+
+/* ── Forms ────────────────────────────────── */
+
+.form-control, .form-select {
+    background: var(--bg-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    border-radius: 12px;
+    transition: var(--transition);
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--bg-secondary);
+    border-color: var(--accent-green);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 3px rgba(0, 208, 132, 0.15);
+}
+
+/* ── Buttons ─────────────────────────────── */
+
+.btn { border-radius: 12px; font-weight: 700; transition: var(--transition); }
+.btn:hover { transform: translateY(-2px); }
+.btn-success { background: linear-gradient(135deg, var(--accent-green), #00b894); border: none; color: #0a0f1a; font-weight: 800; }
+.btn-success:hover { box-shadow: 0 8px 25px rgba(0, 208, 132, 0.25); color: #0a0f1a; }
+.btn-warning { background: linear-gradient(135deg, var(--accent-gold), #c49000); border: none; color: #0a0f1a; font-weight: 800; }
+.btn-warning:hover { box-shadow: 0 8px 25px rgba(212, 160, 23, 0.25); }
+.btn-info { background: linear-gradient(135deg, var(--accent-blue), #3498db); border: none; }
+.btn-primary { background: linear-gradient(135deg, var(--accent-green), var(--accent-gold)); border: none; color: #0a0f1a; font-weight: 800; }
+
+/* ── Progress ────────────────────────────── */
+
+.progress { background: rgba(255, 255, 255, 0.04); border-radius: 10px; }
+
+/* ── Scrollbar ───────────────────────────── */
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: rgba(0, 208, 132, 0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-green); }
+
+/* ── Divider ─────────────────────────────── */
+
+hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 208, 132, 0.1), transparent);
+    margin: 20px 0;
+}
+
+/* ── Animations ──────────────────────────── */
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.metric-card, .glass-card, .jogo-resultado { animation: fadeIn 0.5s ease-out; }
+
+/* ── Responsive ──────────────────────────── */
+
+@media (max-width: 991px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    .main-content {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .metric-value { font-size: 1.2rem; }
+    .dezena-ball { width: 40px; height: 40px; font-size: 0.8rem; }
+    .dezena-ball.small-ball { width: 34px; height: 34px; font-size: 0.72rem; }
+    .dashboard-header h1 { font-size: 1.6rem; }
+}
+
+/* ── Spinner ─────────────────────────────── */
+
+.spinner-border { color: var(--accent-green) !important; }
+
+/* ── Dezena mini ─────────────────────────── */
+.dezenas-mini { display: flex; flex-wrap: wrap; gap: 4px; }
+
+/* ═════════════════════════════════════════════
+   INTELIGÊNCIA LotoMind v2.0
+   ═════════════════════════════════════════════ */
+
+/* ── Stat Cards (KPI) ────────────────────── */
+
+.stat-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-green));
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 35px rgba(155,89,182,0.12);
+}
+
+.stat-icon { font-size: 1.8rem; color: var(--accent-purple); }
+.stat-body { flex: 1; }
+.stat-label { font-size: 0.72rem; color: rgba(232,234,240,0.5); text-transform: uppercase; letter-spacing: 0.7px; font-weight: 600; }
+.stat-value { font-size: 1.6rem; font-weight: 800; color: #f0f0f0; }
+.stat-trend { font-size: 0.75rem; font-weight: 500; }
+.trend-up { color: var(--accent-green); }
+
+/* ── Diretriz Cards ─────────────────────── */
+
+.diretriz-card {
+    background: var(--bg-secondary);
+    border: 1px solid rgba(155,89,182,0.1);
+    border-radius: 14px;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    transition: var(--transition);
+    height: 100%;
+}
+
+.diretriz-card:hover {
+    border-color: rgba(155,89,182,0.3);
+    box-shadow: 0 0 20px rgba(155,89,182,0.15);
+    transform: translateY(-3px);
+}
+
+.diretriz-icon { font-size: 1.6rem; line-height: 1; flex-shrink: 0; }
+.diretriz-body { flex: 1; }
+.diretriz-nome { font-weight: 700; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 2px; }
+.diretriz-desc { font-size: 0.72rem; color: var(--text-muted); line-height: 1.3; margin-bottom: 6px; }
+.diretriz-badge { background: rgba(0,184,148,0.12)!important; color: var(--accent-green)!important; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; }
+
+/* ── Par Cards (Coocorrência) ───────────────── */
+
+.par-card {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 0.6rem 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: var(--transition);
+    margin-bottom: 4px;
+}
+
+.par-positivo { border: 1px solid rgba(155,89,182,0.15); }
+.par-positivo:hover { border-color: rgba(155,89,182,0.3); box-shadow: 0 0 15px rgba(155,89,182,0.15); }
+
+/* ── Volante Grid 5×5 ────────────────────── */
+
+.volante-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    max-width: 320px;
+    margin: 0 auto;
+}
+
+.volante-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: var(--transition);
+}
+
+.cell-moldura {
+    background: linear-gradient(135deg, rgba(155,89,182,0.25), rgba(155,89,182,0.1));
+    border: 2px solid rgba(155,89,182,0.4);
+    color: var(--accent-purple);
+}
+
+.cell-miolo {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text-muted);
+}
+
+.cell-moldura-mini, .cell-miolo-mini {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+.cell-moldura-mini { background: rgba(155,89,182,0.4); border: 1px solid var(--accent-purple); }
+.cell-miolo-mini { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); }
+
+/* ── Botão LotoMind ──────────────────────── */
+
+.btn-lotomind {
+    background: linear-gradient(135deg, var(--accent-purple), #8e44ad, var(--accent-green));
+    background-size: 200% 200%;
+    border: none;
+    color: #fff;
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+    animation: gradientShift 3s ease infinite;
+}
+
+.btn-lotomind:hover {
+    box-shadow: 0 8px 30px rgba(155,89,182,0.4);
+    color: #fff;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* ── Jogo Cards (Gerador Inteligente) ───── */
+
+.jogo-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    transition: var(--transition);
+    animation: fadeIn 0.5s ease-out;
+    height: 100%;
+}
+
+.jogo-card:hover { transform: translateY(-4px); }
+.jogo-elite { border: 1px solid rgba(155,89,182,0.3); box-shadow: 0 4px 25px rgba(155,89,182,0.15); }
+.jogo-bom { border: 1px solid rgba(0,184,148,0.25); box-shadow: 0 4px 20px rgba(0,184,148,0.1); }
+.jogo-regular { border: 1px solid rgba(255,255,255,0.08); }
+.jogo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; }
+.jogo-rank { font-size: 1.4rem; font-weight: 900; color: var(--accent-purple); }
+.jogo-classificacao { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+.jogo-score { display: flex; align-items: center; gap: 10px; }
+.score-bar { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+.score-fill { height: 100%; background: linear-gradient(90deg, var(--accent-purple), var(--accent-green)); border-radius: 4px; transition: width 0.6s ease-out; }
+.score-label { font-size: 0.78rem; font-weight: 700; color: var(--accent-purple); white-space: nowrap; }
+.jogo-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ── Score Grande (Analisador) ─────────────── */
+
+.analise-resultado {
+    background: var(--bg-secondary);
+    border: 1px solid rgba(155,89,182,0.15);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.score-grande { padding: 1rem; }
+.score-numero { font-size: 3.5rem; font-weight: 900; line-height: 1; display: inline-block; }
+.score-max { font-size: 1.2rem; font-weight: 500; color: var(--text-muted); display: inline-block; margin-left: 2px; }
+
+/* ── Mini Diretriz Badges ─────────────────── */
+
+.mini-diretriz {
+    background: var(--bg-secondary);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.mini-diretriz:hover { transform: translateY(-2px); }
+
+/* ── Tables (Inteligência) ────────────────── */
+
+.table-dark {
+    --bs-table-bg: transparent;
+    --bs-table-border-color: rgba(255,255,255,0.04);
+}
+
+.table-dark thead th {
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(155,89,182,0.1);
+}
+
+.sidebar-category {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.6rem 1.3rem;
+    font-size: 0.78rem;
+    color: rgba(232,234,240,0.5);
+}

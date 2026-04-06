@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="LotoMind Portal — Sistema privado de análise de loterias">
+    <title>{% block title %}LotoMind Portal{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-stars"></i>
+            <span>LotoMind</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-section">MENU</div>
+
+            <a href="/dashboard" class="sidebar-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                <i class="bi bi-house-fill"></i> Dashboard
+            </a>
+
+            <div class="sidebar-category mt-4">
+                        <i class="bi bi-layers sidebar-icon" style="color: var(--accent-green)"></i>
+                        <span class="fw-semibold">Lotofácil</span>
+                    </div>
+
+                    <!-- Links da Lotofácil -->
+                    <a href="{{ url_for('lotofacil.dashboard') }}" class="sidebar-link">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('lotofacil.estatisticas') }}" class="sidebar-link">
+                        <i class="bi bi-bar-chart-line"></i> Fixos da Semana / Estats
+                    </a>
+                    <a href="{{ url_for('lotofacil.calor') }}" class="sidebar-link">
+                        <i class="bi bi-thermometer-sun"></i> Mapa de Calor
+                    </a>
+                    <a href="{{ url_for('lotofacil.gerador') }}" class="sidebar-link">
+                        <i class="bi bi-cpu"></i> Gerador PRO / MESTRE
+                    </a>
+                    <a href="{{ url_for('lotofacil.montecarlo') }}" class="sidebar-link">
+                        <i class="bi bi-dice-6"></i> Simulação Monte Carlo
+                    </a>
+                    <a href="{{ url_for('lotofacil.inteligencia_page') }}" class="sidebar-link" style="border-left: 3px solid var(--accent-purple); background: rgba(155,89,182,0.05);">
+                        <i class="bi bi-cpu-fill" style="color: var(--accent-purple)"></i> Inteligência v2.0
+                    </a>
+                    
+                    <!-- Arsenal Centralizado -->
+                    <div class="sidebar-category mt-4">
+                        <i class="bi bi-shield-check sidebar-icon text-warning"></i>
+                        <span class="fw-semibold">Operacional</span>
+                    </div>
+                    <a href="{{ url_for('arsenal.dashboard') }}" class="sidebar-link" style="border-left: 3px solid var(--accent-orange); background: rgba(255, 153, 0, 0.05);">
+                        <i class="bi bi-trophy text-warning"></i> Arsenal + Conferidor
+                    </a>
+
+                    <!-- Categoria Mega-Sena -->
+            <div class="sidebar-section">MEGA-SENA</div>
+            <a href="/megasena/" class="sidebar-link {% if request.endpoint and 'megasena.dashboard' in request.endpoint %}active{% endif %}">
+                <i class="bi bi-graph-up"></i> Painel
+            </a>
+            <a href="/megasena/estatisticas" class="sidebar-link">
+                <i class="bi bi-bar-chart-fill"></i> Estatísticas
+            </a>
+            <a href="/megasena/gerador" class="sidebar-link">
+                <i class="bi bi-dice-6-fill"></i> Gerador
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="/logout" class="sidebar-link text-danger">
+                <i class="bi bi-box-arrow-left"></i> Sair
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navbar -->
+        <nav class="top-navbar">
+            <button class="btn btn-link text-white d-lg-none" onclick="document.getElementById('sidebar').classList.toggle('show')">
+                <i class="bi bi-list fs-4"></i>
+            </button>
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-bold">{% block page_title %}LotoMind Portal{% endblock %}</span>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted small d-none d-md-inline">
+                    <i class="bi bi-person-circle"></i> {{ current_user.email if current_user.is_authenticated else '' }}
+                </span>
+                <a href="/logout" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-box-arrow-left"></i>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="px-4 pt-3">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Page Content -->
+        <main class="px-4 py-3">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="text-center py-3 text-muted small">
+            <i class="bi bi-shield-lock"></i> LotoMind Portal v2.0 — Motor de Inteligência Ativo
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

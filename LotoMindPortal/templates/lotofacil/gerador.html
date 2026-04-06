@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Lotofácil — Gerador PRO & MESTRE{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-cpu text-info"></i> Gerador de Jogos com Validação Profissional</h2>
+    <a href="{{ url_for('lotofacil.dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card bg-dark border-success h-100">
+            <div class="card-header border-success text-success fw-bold">
+                <i class="bi bi-fire"></i> NÚMEROS QUENTES (Top 15)
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    {% for n in quentes %}
+                        <span class="badge bg-success fs-6">{{ "%02d"|format(n) }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card bg-dark border-info h-100">
+            <div class="card-header border-info text-info fw-bold">
+                <i class="bi bi-snow"></i> NÚMEROS FRIOS (Últimos 10)
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    {% for n in frias %}
+                        <span class="badge bg-info text-dark fs-6">{{ "%02d"|format(n) }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card bg-dark border-secondary mb-4">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('lotofacil.gerador') }}">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label class="form-label text-muted">Escolha a Estratégia:</label>
+                    <select name="estrategia" class="form-select bg-dark text-white border-secondary">
+                        <option value="aleatorio_pro">Gerador PRO (Aleatório com Filtros: Soma, Primos, Paridade)</option>
+                        <option value="quentes">Estratégia Ouro (Mescla Quentes e Frias + Filtros)</option>
+                        <option value="mestre">Gerador MESTRE (Baseado no último concurso + Filtros)</option>
+                        <option value="padrao">Gerador Padrão (100% Aleatório s/ Filtro)</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">
+                        <i class="bi bi-rocket-takeoff"></i> Gerar Jogo Validado
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if jogo_gerado %}
+<div class="card bg-dark border-primary mb-4" style="box-shadow: 0 0 15px rgba(13, 110, 253, 0.2);">
+    <div class="card-header border-primary text-primary fw-bold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-check-circle-fill"></i> Jogo Gerado com Sucesso</span>
+        <span class="badge bg-primary">{{ estrategia_usada }}</span>
+    </div>
+    <div class="card-body text-center py-4">
+        <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
+            {% for n in jogo_gerado %}
+                <div class="ball-lg fw-bold" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(145deg, #0d6efd, #0b5ed7); color: white; display:flex; align-items:center; justify-content:center; font-size: 1.3rem; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+                    {{ "%02d"|format(n) }}
+                </div>
+            {% endfor %}
+        </div>
+        
+        <form id="formSalvarArsenal" class="d-inline-flex gap-2">
+            <input type="hidden" name="dezenas" value="{{ jogo_gerado | join(',') }}">
+            <input type="hidden" name="estrategia" value="{{ estrategia_usada }}">
+            <input type="hidden" name="loteria" value="lotofacil">
+            
+            <select name="slot" class="form-select bg-dark text-white border-secondary" style="width: auto;">
+                <option value="1">Slot 1</option>
+                <option value="2">Slot 2</option>
+                <option value="3">Slot 3</option>
+                <option value="4">Slot 4</option>
+                <option value="5">Slot 5</option>
+                <option value="6">Slot 6</option>
+                <option value="7">Slot 7</option>
+                <option value="8">Slot 8</option>
+            </select>
+            <button type="button" onclick="salvarNoArsenal()" class="btn btn-warning fw-bold text-dark">
+                <i class="bi bi-pin-angle-fill"></i> Salvar no Arsenal
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+function salvarNoArsenal() {
+    const form = document.getElementById('formSalvarArsenal');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    fetch('/arsenal/salvar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if(result.status === 'success') {
+            alert('✅ Jogo salvo no Arsenal com sucesso!');
+        } else {
+            alert('❌ Erro: ' + result.message);
+        }
+    })
+    .catch(error => {
+        alert('❌ Erro ao salvar jogo.');
+        console.error('Error:', error);
+    });
+}
+</script>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+{% block title %}MegaMind — Gerador{% endblock %}
+
+{% block content %}
+{% if erro %}
+<div class="alert alert-danger text-center">
+    <h4><i class="bi bi-exclamation-triangle"></i> Erro ao carregar dados</h4>
+    <a href="/atualizar" class="btn btn-outline-light"><i class="bi bi-arrow-clockwise"></i> Tentar Novamente</a>
+</div>
+{% else %}
+
+<h2 class="mb-4"><i class="bi bi-dice-6-fill text-success"></i> Gerador de Jogos</h2>
+
+<!-- Info Lateral -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-fire text-danger"></i> Quentes</h6>
+                <div class="dezenas-mini">
+                    {% for n in quentes %}
+                    <span class="dezena-ball small-ball dezena-hot">{{ '%02d' % n }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-snow text-info"></i> Frias</h6>
+                <div class="dezenas-mini">
+                    {% for n in frias %}
+                    <span class="dezena-ball small-ball dezena-fria">{{ '%02d' % n }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card glass-card h-100">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-info-circle"></i> Como Funciona</h6>
+                <ul class="small text-muted mb-0">
+                    <li><strong>Quente:</strong> Prioriza as 20 dezenas mais frequentes</li>
+                    <li><strong>Fria:</strong> Mistura dezenas atrasadas com quentes</li>
+                    <li><strong>Equilibrado:</strong> 50% quentes, 50% frias</li>
+                    <li><strong>Aleatório:</strong> 6 dezenas totalmente randômicas (1-60)</li>
+                    <li><strong>MESTRE:</strong> 4 jogos elite com cruzamento de arsenal</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gerador Simples -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-lightning-fill text-warning"></i> Gerador Rápido</h5>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Estratégia</label>
+                <select class="form-select" id="estrategia">
+                    <option value="quente">🔥 Quente (Top 20)</option>
+                    <option value="fria">❄️ Fria (Atrasados)</option>
+                    <option value="equilibrado" selected>⚖️ Equilibrado (Mix)</option>
+                    <option value="aleatorio">🎲 Aleatório</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Qtd. Dezenas</label>
+                <select class="form-select" id="qtdDezenas">
+                    <option value="6" selected>6 (padrão)</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15 (máximo)</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-success btn-lg w-100" onclick="gerarSimples()">
+                    <i class="bi bi-play-fill"></i> Gerar Jogo
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-outline-success btn-lg w-100" onclick="gerarSimples()" title="Novo jogo">
+                    <i class="bi bi-arrow-repeat"></i> Outro Jogo
+                </button>
+            </div>
+        </div>
+        <div id="resultadoSimples" class="mt-4"></div>
+    </div>
+</div>
+
+<!-- Gerador MESTRE -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-trophy-fill text-warning"></i> Gerador MESTRE — 4 Jogos Elite</h5>
+        <p class="text-muted small">Cruzamento de Arsenal + Estatísticas + Tendências</p>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label">Melhor Jogo do Arsenal (base)</label>
+                <select class="form-select" id="melhorJogo">
+                    {% for nome in arsenal.keys() %}
+                    <option value="{{ nome }}">{{ nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <button class="btn btn-warning btn-lg w-100 text-dark" onclick="gerarMestre()">
+                    <i class="bi bi-stars"></i> GERAR 4 JOGOS ELITE
+                </button>
+            </div>
+        </div>
+        <div id="resultadoMestre" class="mt-4"></div>
+    </div>
+</div>
+
+<!-- Monte Carlo -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-cpu-fill text-info"></i> Simulação Monte Carlo</h5>
+        <p class="text-muted small">Gera milhares de jogos e filtra apenas os melhores estatisticamente</p>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Jogos a simular</label>
+                <select class="form-select" id="mcQuantidade">
+                    <option value="10000">10.000</option>
+                    <option value="50000">50.000</option>
+                    <option value="100000" selected>100.000</option>
+                    <option value="200000">200.000</option>
+                    <option value="500000">500.000</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Top K resultados</label>
+                <input type="number" class="form-control" id="mcTopK" value="10" min="5" max="50">
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-info btn-lg w-100" onclick="executarMonteCarlo()" id="btnMC">
+                    <i class="bi bi-rocket-takeoff-fill"></i> Iniciar Simulação
+                </button>
+            </div>
+        </div>
+        <div id="resultadoMC" class="mt-4"></div>
+    </div>
+</div>
+
+<!-- Arsenal -->
+<div class="card glass-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-shield-fill text-primary"></i> Arsenal de Jogos</h5>
+        <div class="row g-3">
+            {% for nome, dezenas in arsenal.items() %}
+            <div class="col-md-6">
+                <div class="arsenal-card">
+                    <h6>{{ nome }}</h6>
+                    <div class="dezenas-container">
+                        {% for d in dezenas %}
+                        <span class="dezena-ball small-ball">{{ '%02d' % d }}</span>
+                        {% endfor %}
+                    </div>
+                    <small class="text-muted">Soma: {{ dezenas | sum }}</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if not erro %}
+<script>
+function gerarSimples() {
+    const estrategia = document.getElementById('estrategia').value;
+    const qtd = document.getElementById('qtdDezenas').value;
+    const container = document.getElementById('resultadoSimples');
+    container.innerHTML = '<div class="text-center"><div class="spinner-border text-success"></div><p class="mt-2">Gerando jogo...</p></div>';
+
+    fetch('/gerar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ modo: 'simples', estrategia, qtd_dezenas: parseInt(qtd) })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.erro) { container.innerHTML = `<div class="alert alert-danger">${data.erro}</div>`; return; }
+
+        let html = `<div class="jogo-resultado ${data.valido ? 'jogo-valido' : 'jogo-parcial'}">`;
+        html += `<div class="text-center mb-3">`;
+        data.jogo.forEach(n => {
+            html += `<span class="dezena-ball ${data.valido ? 'dezena-acerto' : ''}">${n.toString().padStart(2, '0')}</span>`;
+        });
+        html += `</div>`;
+
+        // Badges
+        html += `<div class="text-center mb-3">`;
+        html += `<span class="badge ${data.valido ? 'bg-success' : 'bg-warning text-dark'} me-2">${data.valido ? '✅ VALIDADO' : '⚠️ PARCIAL'}</span>`;
+        html += `<span class="badge bg-secondary me-2">Soma: ${data.soma}</span>`;
+        html += `<span class="badge bg-secondary">${data.paridade}</span>`;
+        html += `</div>`;
+
+        // Validações
+        html += `<div class="row g-2 justify-content-center">`;
+        for (const [key, val] of Object.entries(data.validacoes)) {
+            const icon = val.valido ? '✅' : '❌';
+            html += `<div class="col-auto"><span class="badge bg-dark border">${icon} ${key}: ${val.valor} (${val.esperado})</span></div>`;
+        }
+        html += `</div>`;
+
+        // Link WhatsApp
+        const nums = data.jogo.map(n => n.toString().padStart(2, '0')).join(' - ');
+        const texto = encodeURIComponent(`🎰 *MegaMind — Mega-Sena*\n\n📊 Jogo: ${nums}\n➕ Soma: ${data.soma}\n⚖️ Paridade: ${data.paridade}`);
+        html += `<div class="text-center mt-3"><a href="https://api.whatsapp.com/send?text=${texto}" target="_blank" class="btn btn-outline-success btn-sm"><i class="bi bi-whatsapp"></i> Compartilhar</a></div>`;
+
+        html += `</div>`;
+        container.innerHTML = html;
+    })
+    .catch(err => {
+        container.innerHTML = `<div class="alert alert-danger">Erro: ${err.message}</div>`;
+    });
+}
+
+function gerarMestre() {
+    const melhor = document.getElementById('melhorJogo').value;
+    const container = document.getElementById('resultadoMestre');
+    container.innerHTML = '<div class="text-center"><div class="spinner-border text-warning"></div><p class="mt-2">Gerando 4 jogos elite...</p></div>';
+
+    fetch('/gerar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ modo: 'mestre', melhor_jogo: melhor })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.erro) { container.innerHTML = `<div class="alert alert-danger">${data.erro}</div>`; return; }
+
+        let html = '';
+        data.jogos.forEach((jogo, idx) => {
+            html += `<div class="jogo-resultado ${jogo.valido ? 'jogo-valido' : 'jogo-parcial'} mb-3">`;
+            html += `<h6>${jogo.nome} <span class="badge bg-warning text-dark">Score: ${jogo.score}/100</span></h6>`;
+            html += `<div class="text-center mb-2">`;
+            jogo.dezenas.forEach(n => {
+                html += `<span class="dezena-ball dezena-acerto">${n.toString().padStart(2, '0')}</span>`;
+            });
+            html += `</div>`;
+            html += `<div class="text-center">`;
+            html += `<span class="badge bg-secondary me-1">${jogo.paridade}</span>`;
+            html += `<span class="badge bg-dark border me-1">${jogo.estrategia}</span>`;
+            html += `</div>`;
+
+            // Validações
+            if (jogo.validacoes) {
+                html += `<div class="row g-1 mt-2 justify-content-center">`;
+                for (const [key, val] of Object.entries(jogo.validacoes)) {
+                    const icon = val.valido ? '✅' : '❌';
+                    html += `<div class="col-auto"><span class="badge bg-dark border small">${icon} ${key}: ${val.valor}</span></div>`;
+                }
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+        });
+        container.innerHTML = html;
+    })
+    .catch(err => {
+        container.innerHTML = `<div class="alert alert-danger">Erro: ${err.message}</div>`;
+    });
+}
+
+function executarMonteCarlo() {
+    const n = parseInt(document.getElementById('mcQuantidade').value);
+    const topK = parseInt(document.getElementById('mcTopK').value);
+    const container = document.getElementById('resultadoMC');
+    const btn = document.getElementById('btnMC');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Simulando...';
+    container.innerHTML = '<div class="text-center text-info"><div class="spinner-border"></div><p class="mt-2">Processando ' + n.toLocaleString() + ' jogos...</p></div>';
+
+    fetch('/monte-carlo', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ n, top_k: topK })
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-rocket-takeoff-fill"></i> Iniciar Simulação';
+
+        if (data.erro) { container.innerHTML = `<div class="alert alert-danger">${data.erro}</div>`; return; }
+        if (data.status === 'sem_resultados') {
+            container.innerHTML = '<div class="alert alert-warning">⚠️ Nenhum jogo passou nos filtros. Tente com mais jogos.</div>';
+            return;
+        }
+
+        let html = `<div class="alert alert-success">✅ Concluído em ${data.tempo_segundos}s — ${data.estatisticas.aprovados_desvio.toLocaleString()} aprovados de ${data.total_gerado.toLocaleString()} (${data.estatisticas.taxa_final}%)</div>`;
+
+        data.top_jogos.forEach((jogo, idx) => {
+            const scoreColor = jogo.score >= 85 ? '#FFD700' : (jogo.score >= 70 ? '#00fa9a' : '#7b68ee');
+            html += `<div class="jogo-resultado mb-3">`;
+            html += `<div class="d-flex justify-content-between align-items-center mb-2">`;
+            html += `<h6 class="mb-0">#${idx + 1} — ${jogo.classificacao}</h6>`;
+            html += `<span style="font-size: 1.5rem; font-weight: 900; color: ${scoreColor}">${jogo.score}/100</span>`;
+            html += `</div>`;
+            html += `<div class="text-center mb-2">`;
+            jogo.jogo.forEach(n => {
+                html += `<span class="dezena-ball dezena-acerto">${n.toString().padStart(2, '0')}</span>`;
+            });
+            html += `</div>`;
+
+            // Detalhes
+            const d = jogo.detalhes;
+            html += `<div class="row g-1 justify-content-center">`;
+            html += `<div class="col-auto"><span class="badge bg-dark border">${d.soma.valido ? '✅' : '❌'} Soma: ${d.soma.valor} (${d.soma.pontos}pts)</span></div>`;
+            html += `<div class="col-auto"><span class="badge bg-dark border">${d.desvio_padrao.valido ? '✅' : '❌'} σ: ${d.desvio_padrao.valor.toFixed(1)} (${d.desvio_padrao.pontos}pts)</span></div>`;
+            html += `<div class="col-auto"><span class="badge bg-dark border">${d.paridade.valido ? '✅' : '❌'} ${d.paridade.formato} (${d.paridade.pontos}pts)</span></div>`;
+            html += `<div class="col-auto"><span class="badge bg-dark border">${d.primos.valido ? '✅' : '❌'} Primos: ${d.primos.quantidade} (${d.primos.pontos}pts)</span></div>`;
+            if (d.quadrantes) {
+                html += `<div class="col-auto"><span class="badge bg-dark border">📊 ${d.quadrantes.presentes} quadrantes (${d.quadrantes.pontos}pts)</span></div>`;
+            }
+            html += `</div>`;
+            html += `</div>`;
+        });
+
+        container.innerHTML = html;
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-rocket-takeoff-fill"></i> Iniciar Simulação';
+        container.innerHTML = `<div class="alert alert-danger">Erro: ${err.message}</div>`;
+    });
+}
+</script>
+{% endif %}
+{% endblock %}
