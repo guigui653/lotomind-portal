@@ -12,7 +12,7 @@ lotofacil_bp = Blueprint('lotofacil', __name__, template_folder='../../templates
 
 # ── Inicialização Lazy ────────────────────────────────────
 
-_cache = {'dados': None, 'engine': None, 'intel_engine': None, 'predictor': None}
+_cache = {'dados': None, 'engine': None, 'intel_engine': None, 'predictor': None, 'avaliador': None}
 
 
 def _get_engine():
@@ -34,6 +34,18 @@ def _get_predictor():
         from modules.lotofacil.advanced_stats import LotteryPredictor
         _cache['predictor'] = LotteryPredictor()
     return _cache['predictor']
+
+
+def _get_avaliador():
+    if _cache['avaliador'] is None:
+        from modules.analise_avancada.avaliador import AvaliadorDeJogos
+        _cache['avaliador'] = AvaliadorDeJogos(loteria='lotofacil')
+    avaliador = _cache['avaliador']
+    if not avaliador.historico_carregado:
+        dados = get_dados()
+        if dados:
+            avaliador.carregar_historico(dados['df'])
+    return avaliador
 
 
 def _carregar_dados(qtd=200):
@@ -206,6 +218,7 @@ def atualizar():
     _cache['dados'] = None
     _cache['intel_engine'] = None
     _cache['predictor'] = None
+    _cache['avaliador'] = None
     return jsonify({'status': 'ok', 'mensagem': 'Cache limpo.'})
 
 
@@ -331,4 +344,66 @@ def api_predict_score():
 
     resultado = predictor.confidence_score(nums)
     return jsonify(_serializar(resultado))
+
+
+# ════════════════════════════════════════════════════════════
+#  ROTAS DO AVALIADOR DE JOGOS (Boletim Explicável)
+# ════════════════════════════════════════════════════════════
+
+@lotofacil_bp.route('/api/avaliar-jogo', methods=['POST'])
+@login_required
+def api_avaliar_jogo():
+    """Avalia um jogo com 8 critérios e retorna boletim JSON completo."""
+    dados = get_dados()
+    if dados is None:
+        return jsonify({'erro': 'Dados não disponíveis'}), 500
+
+    avaliador = _get_avaliador()
+    body = request.get_json(silent=True) or {}
+    numeros = body.get('numeros', [])
+
+    try:
+        nums = sorted(list(set([int(n) for n in numeros])))
+    except (ValueError, TypeError):
+        return jsonify({'erro': 'Números inválidos'}), 400
+
+    if len(nums) != 15:
+        return jsonify({'erro': 'Envie exatamente 15 números'}), 400
+
+    resultado = avaliador.avaliar_e_pontuar_jogo(nums)
+    return jsonify(_serializar(resultado))
+
+
+@lotofacil_bp.route('/api/gerar-com-boletim', methods=['POST'])
+@login_required
+def api_gerar_com_boletim():
+    """Gera N jogos inteligentes e retorna cada um com seu boletim de avaliação."""
+    dados = get_dados()
+    if dados is None:
+        return jsonify({'erro': 'Dados não disponíveis'}), 500
+
+    intel = _get_intel_engine()
+    avaliador = _get_avaliador()
+
+    body = request.get_json(silent=True) or {}
+    qtd = min(int(body.get('qtd', 3)), 10)
+
+    try:
+        jogos_intel = intel.gerar_multiplos_jogos(qtd=qtd)
+        jogos_com_boletim = []
+
+        for jogo_info in jogos_intel:
+            boletim = avaliador.avaliar_e_pontuar_jogo(jogo_info['jogo'])
+            jogos_com_boletim.append({
+                'jogo': jogo_info['jogo'],
+                'score_inteligencia': jogo_info.get('score_final', 0),
+                'boletim': boletim,
+            })
+
+        # Ordenar por nota do boletim (decrescente)
+        jogos_com_boletim.sort(key=lambda x: x['boletim']['nota_final'], reverse=True)
+
+        return jsonify(_serializar({'jogos': jogos_com_boletim}))
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
 

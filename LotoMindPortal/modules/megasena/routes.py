@@ -11,7 +11,7 @@ megasena_bp = Blueprint('megasena', __name__, template_folder='../../templates/m
 
 # ── Inicialização Lazy ────────────────────────────────────
 
-_cache = {'dados': None, 'engine': None, 'gerador': None}
+_cache = {'dados': None, 'engine': None, 'gerador': None, 'avaliador': None}
 
 
 def _get_engine():
@@ -26,6 +26,18 @@ def _get_gerador():
         from modules.megasena.generator import GeradorJogos
         _cache['gerador'] = GeradorJogos(_get_engine())
     return _cache['gerador']
+
+
+def _get_avaliador():
+    if _cache['avaliador'] is None:
+        from modules.analise_avancada.avaliador import AvaliadorDeJogos
+        _cache['avaliador'] = AvaliadorDeJogos(loteria='megasena')
+    avaliador = _cache['avaliador']
+    if not avaliador.historico_carregado:
+        dados = get_dados()
+        if dados:
+            avaliador.carregar_historico(dados['df'])
+    return avaliador
 
 
 def _carregar_dados(qtd=50):
@@ -210,4 +222,94 @@ def monte_carlo():
 @login_required
 def atualizar():
     _cache['dados'] = None
+    _cache['avaliador'] = None
     return jsonify({'status': 'ok', 'mensagem': 'Cache limpo.'})
+
+
+# ════════════════════════════════════════════════════════════
+#  ROTAS DO AVALIADOR DE JOGOS (Boletim Explicável)
+# ════════════════════════════════════════════════════════════
+
+
+def _serializar_mega(obj):
+    """Converte tipos numpy para JSON-serializáveis."""
+    import numpy as np
+    if isinstance(obj, dict):
+        return {k: _serializar_mega(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_serializar_mega(i) for i in obj]
+    elif isinstance(obj, (np.integer,)):
+        return int(obj)
+    elif isinstance(obj, (np.floating,)):
+        return float(obj)
+    elif isinstance(obj, (np.bool_, bool)):
+        return bool(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, set):
+        return sorted(list(obj))
+    elif isinstance(obj, tuple):
+        return list(obj)
+    return obj
+
+
+@megasena_bp.route('/api/avaliar-jogo', methods=['POST'])
+@login_required
+def api_avaliar_jogo():
+    """Avalia um jogo de 6 dezenas com 8 critérios e retorna boletim JSON."""
+    dados = get_dados()
+    if dados is None:
+        return jsonify({'erro': 'Dados não disponíveis'}), 500
+
+    avaliador = _get_avaliador()
+    body = request.get_json(silent=True) or {}
+    numeros = body.get('numeros', [])
+
+    try:
+        nums = sorted(list(set([int(n) for n in numeros])))
+    except (ValueError, TypeError):
+        return jsonify({'erro': 'Números inválidos'}), 400
+
+    if len(nums) != 6:
+        return jsonify({'erro': 'Envie exatamente 6 números'}), 400
+
+    resultado = avaliador.avaliar_e_pontuar_jogo(nums)
+    return jsonify(_serializar_mega(resultado))
+
+
+@megasena_bp.route('/api/gerar-com-boletim', methods=['POST'])
+@login_required
+def api_gerar_com_boletim():
+    """Gera N jogos e retorna cada um com seu boletim de avaliação."""
+    dados = get_dados()
+    if dados is None:
+        return jsonify({'erro': 'Dados não disponíveis'}), 500
+
+    avaliador = _get_avaliador()
+    gerador = _get_gerador()
+
+    body = request.get_json(silent=True) or {}
+    qtd = min(int(body.get('qtd', 3)), 10)
+    estrategia = body.get('estrategia', 'equilibrado')
+
+    try:
+        jogos_com_boletim = []
+
+        for _ in range(qtd):
+            jogo, valido, validacoes = gerador.gerar_jogo_validado(
+                estrategia=estrategia,
+                quentes=dados['quentes'],
+                frias=dados['frias'],
+            )
+            boletim = avaliador.avaliar_e_pontuar_jogo(jogo)
+            jogos_com_boletim.append({
+                'jogo': jogo,
+                'valido_gerador': valido,
+                'boletim': boletim,
+            })
+
+        jogos_com_boletim.sort(key=lambda x: x['boletim']['nota_final'], reverse=True)
+
+        return jsonify(_serializar_mega({'jogos': jogos_com_boletim}))
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
