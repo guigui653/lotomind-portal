@@ -1,0 +1,590 @@
+{% extends "base.html" %}
+
+{% block title %}Quant-Master ⚡ — LotoMind Portal{% endblock %}
+{% block page_title %}⚡ LotoMind Quant-Master{% endblock %}
+
+{% block content %}
+<style>
+  /* ── Quant-Master Exclusive Styles ─────────────────────────────── */
+  :root {
+    --qm-gold:    #f59e0b;
+    --qm-gold-d:  #b45309;
+    --qm-cyan:    #06b6d4;
+    --qm-green:   #10b981;
+    --qm-red:     #ef4444;
+    --qm-purple:  #8b5cf6;
+    --qm-surface: rgba(15, 23, 42, 0.8);
+    --qm-border:  rgba(245, 158, 11, 0.25);
+  }
+
+  .qm-hero {
+    background: linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(6,182,212,0.05) 50%, rgba(139,92,246,0.05) 100%);
+    border: 1px solid var(--qm-border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .qm-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at 30% 30%, rgba(245,158,11,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .qm-badge-axioma {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.35);
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.5px;
+    color: var(--qm-gold);
+    text-transform: uppercase;
+  }
+  .qm-stat-row {
+    display: flex; flex-wrap: wrap; gap: 12px; margin-top: 1rem;
+  }
+  .qm-stat {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px 16px;
+    flex: 1; min-width: 130px;
+    text-align: center;
+  }
+  .qm-stat .val { font-size: 1.3rem; font-weight: 800; color: var(--qm-gold); }
+  .qm-stat .lbl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-top: 2px; }
+
+  /* ── Control Panel ────────────────────────────────────────────── */
+  .qm-panel {
+    background: var(--qm-surface);
+    border: 1px solid var(--qm-border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(12px);
+  }
+  .qm-panel-title {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--qm-gold); margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .btn-execute {
+    background: linear-gradient(135deg, #f59e0b, #b45309);
+    border: none; color: #000; font-weight: 800; font-size: 1rem;
+    padding: 14px 32px; border-radius: 10px; cursor: pointer;
+    transition: all 0.2s ease; letter-spacing: 0.5px;
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    justify-content: center;
+  }
+  .btn-execute:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,158,11,0.35); }
+  .btn-execute:active { transform: translateY(0); }
+  .btn-execute:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .qtd-control {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 1rem;
+  }
+  .qtd-control label { font-size: 0.8rem; color: #94a3b8; min-width: 120px; }
+  .qtd-control input[type=range] { flex: 1; accent-color: var(--qm-gold); }
+  .qtd-display {
+    background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11, 0.4);
+    border-radius: 6px; padding: 4px 12px; font-weight: 800; color: var(--qm-gold);
+    font-size: 1rem; min-width: 36px; text-align: center;
+  }
+
+  /* ── Loading Overlay ──────────────────────────────────────────── */
+  #qm-loading {
+    display: none;
+    background: var(--qm-surface);
+    border: 1px solid var(--qm-border);
+    border-radius: 14px;
+    padding: 2.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(12px);
+  }
+  .qm-spinner {
+    width: 56px; height: 56px; margin: 0 auto 1rem;
+    border: 3px solid rgba(245,158,11,0.15);
+    border-top-color: var(--qm-gold);
+    border-radius: 50%;
+    animation: qm-spin 0.8s linear infinite;
+  }
+  @keyframes qm-spin { to { transform: rotate(360deg); } }
+  .qm-loading-text { color: var(--qm-gold); font-weight: 700; font-size: 1rem; }
+  .qm-loading-sub { color: #64748b; font-size: 0.8rem; margin-top: 6px; }
+  .qm-dots::after {
+    content: '';
+    animation: qm-dots 1.5s steps(4, end) infinite;
+  }
+  @keyframes qm-dots {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+    100% { content: ''; }
+  }
+
+  /* ── Jogo Card ────────────────────────────────────────────────── */
+  .jogos-grid { display: grid; gap: 1.25rem; }
+  .jogo-card {
+    background: var(--qm-surface);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    animation: qm-fadein 0.4s ease both;
+  }
+  .jogo-card:hover { border-color: rgba(245,158,11,0.3); box-shadow: 0 4px 24px rgba(245,158,11,0.08); }
+  @keyframes qm-fadein { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  .jogo-card:nth-child(1) { animation-delay: 0.05s; }
+  .jogo-card:nth-child(2) { animation-delay: 0.1s; }
+  .jogo-card:nth-child(3) { animation-delay: 0.15s; }
+  .jogo-card:nth-child(4) { animation-delay: 0.2s; }
+  .jogo-card:nth-child(5) { animation-delay: 0.25s; }
+  .jogo-card .card-accent {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--qm-gold), var(--qm-cyan));
+  }
+
+  /* SIH Gauge */
+  .sih-wrap { text-align: center; }
+  .sih-gauge-outer {
+    width: 88px; height: 88px; border-radius: 50%; margin: 0 auto 6px;
+    position: relative;
+    background: conic-gradient(var(--sih-color, #f59e0b) var(--sih-pct, 0deg), rgba(255,255,255,0.07) 0deg);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sih-gauge-inner {
+    width: 66px; height: 66px; border-radius: 50%;
+    background: #0f172a;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .sih-value { font-size: 1.3rem; font-weight: 900; color: var(--sih-color, #f59e0b); line-height: 1; }
+  .sih-label-sub { font-size: 0.55rem; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase; }
+  .sih-tag { font-size: 0.65rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Dezenas chips */
+  .dezenas-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin: 1rem 0; }
+  .dezena-chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 42px; height: 42px; border-radius: 10px;
+    font-weight: 800; font-size: 0.95rem;
+    transition: transform 0.15s ease;
+  }
+  .dezena-chip:hover { transform: scale(1.1); }
+  .chip-q1 { background: rgba(16,185,129,0.15); border: 1.5px solid rgba(16,185,129,0.4); color: #10b981; }
+  .chip-q2 { background: rgba(6,182,212,0.15);  border: 1.5px solid rgba(6,182,212,0.4);  color: #06b6d4; }
+  .chip-q3 { background: rgba(139,92,246,0.15); border: 1.5px solid rgba(139,92,246,0.4); color: #8b5cf6; }
+  .chip-q4 { background: rgba(245,158,11,0.15); border: 1.5px solid rgba(245,158,11,0.4); color: #f59e0b; }
+
+  /* Filtros passados */
+  .filtros-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 0.75rem 0; }
+  .filtro-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 0.65rem; font-weight: 600; letter-spacing: 0.3px;
+    padding: 4px 10px; border-radius: 20px;
+    background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #10b981;
+  }
+
+  /* Score bars */
+  .score-bars { margin: 0.75rem 0; }
+  .score-bar-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 6px; font-size: 0.72rem;
+  }
+  .score-bar-label { color: #94a3b8; min-width: 80px; }
+  .score-bar-track {
+    flex: 1; height: 6px; background: rgba(255,255,255,0.07);
+    border-radius: 4px; overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%; border-radius: 4px;
+    transition: width 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .score-bar-val { color: #cbd5e1; min-width: 30px; text-align: right; font-weight: 600; }
+
+  /* Justificativa terminal */
+  .justificativa-box {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-left: 3px solid var(--qm-gold);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.76rem;
+    color: #94a3b8;
+    font-family: 'Courier New', monospace;
+    line-height: 1.65;
+    margin-top: 0.75rem;
+  }
+  .justificativa-box .prompt { color: var(--qm-gold); font-weight: 700; }
+
+  /* Card footer */
+  .card-footer-qm {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 1rem; padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .soma-badge {
+    background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.3);
+    color: var(--qm-cyan); border-radius: 8px; padding: 5px 14px;
+    font-weight: 700; font-size: 0.9rem;
+  }
+  .btn-copy {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: #94a3b8; border-radius: 8px; padding: 6px 14px;
+    font-size: 0.78rem; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-copy:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .btn-copy.copied { border-color: rgba(16,185,129,0.5); color: #10b981; }
+
+  /* Meta info */
+  .meta-panel {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-top: 1.5rem;
+    font-size: 0.75rem; color: #64748b;
+  }
+  .meta-panel strong { color: #94a3b8; }
+
+  /* Quadrante legend */
+  .quad-legend { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+  .quad-leg-item { display: flex; align-items: center; gap: 4px; font-size: 0.65rem; color: #64748b; }
+  .quad-leg-dot { width: 10px; height: 10px; border-radius: 3px; }
+</style>
+
+<!-- ── Hero ────────────────────────────────────────────────────────────────── -->
+<div class="qm-hero">
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+    <div>
+      <div class="qm-badge-axioma mb-2">
+        <i class="bi bi-cpu-fill"></i> Axioma: EV = Prêmio ÷ N_Ganhadores
+      </div>
+      <h1 class="fw-black mb-1" style="font-size:2rem; background: linear-gradient(90deg,#f59e0b,#06b6d4); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+        ⚡ Quant-Master
+      </h1>
+      <p class="text-secondary mb-0" style="font-size:0.85rem; max-width:520px;">
+        Motor HFT aplicado à Mega-Sena. Gera apostas com máximo <strong style="color:#f59e0b">Score de Improbabilidade Humana (SIH)</strong> — minimizando colisão com padrões comportamentais de outros apostadores para maximizar o EV em caso de acerto.
+      </p>
+    </div>
+    <div class="text-end">
+      <div class="text-muted" style="font-size:0.7rem;">Último concurso</div>
+      <div class="fw-bold" style="color:#f59e0b; font-size:1.1rem;">#{{ ultimo.Concurso if ultimo else '—' }}</div>
+    </div>
+  </div>
+
+  {% if axioma %}
+  <div class="qm-stat-row">
+    <div class="qm-stat">
+      <div class="val">1/{{ "{:,}".format(axioma.n_combinacoes_totais).replace(",", ".") }}</div>
+      <div class="lbl">P(acerto) — constante</div>
+    </div>
+    <div class="qm-stat">
+      <div class="val">{{ axioma.soma_media_teorica | int }}</div>
+      <div class="lbl">Soma média teórica</div>
+    </div>
+    <div class="qm-stat">
+      <div class="val">{{ axioma.soma_alvo_min }}–{{ axioma.soma_alvo_max }}</div>
+      <div class="lbl">Soma-alvo (cauda ↗)</div>
+    </div>
+    <div class="qm-stat">
+      <div class="val">{{ axioma.alta_entropia | length }}</div>
+      <div class="lbl">Dezenas alta-entropia</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ── Painel de Controle ───────────────────────────────────────────────────── -->
+<div class="qm-panel">
+  <div class="qm-panel-title"><i class="bi bi-sliders"></i> Parâmetros do Gerador MESTRE</div>
+  <div class="qtd-control">
+    <label>Quantidade de jogos</label>
+    <input type="range" id="qtdRange" min="1" max="10" value="5"
+           oninput="document.getElementById('qtdVal').textContent = this.value">
+    <div class="qtd-display" id="qtdVal">5</div>
+  </div>
+  <div class="qtd-control">
+    <label>Candidatos Monte Carlo</label>
+    <input type="range" id="mcRange" min="10000" max="200000" step="10000" value="50000"
+           oninput="document.getElementById('mcVal').textContent = Number(this.value).toLocaleString('pt-BR')">
+    <div class="qtd-display" id="mcVal" style="min-width:70px; font-size:0.8rem;">50.000</div>
+  </div>
+  <button class="btn-execute" id="btnExecutar" onclick="executarMestre()">
+    <i class="bi bi-lightning-charge-fill"></i>
+    EXECUTAR GERADOR MESTRE
+  </button>
+</div>
+
+<!-- ── Loading ─────────────────────────────────────────────────────────────── -->
+<div id="qm-loading">
+  <div class="qm-spinner"></div>
+  <div class="qm-loading-text">Simulando Monte Carlo<span class="qm-dots"></span></div>
+  <div class="qm-loading-sub" id="loading-sub">Aguarde — aplicando filtros de viés comportamental</div>
+</div>
+
+<!-- ── Resultados ──────────────────────────────────────────────────────────── -->
+<div id="qm-resultados"></div>
+
+<!-- ── Legenda Quadrantes ──────────────────────────────────────────────────── -->
+<div class="quad-legend mt-3" id="qm-legend" style="display:none!important;">
+  <div class="quad-leg-item"><div class="quad-leg-dot" style="background:#10b981"></div>Q1: 01–15</div>
+  <div class="quad-leg-item"><div class="quad-leg-dot" style="background:#06b6d4"></div>Q2: 16–30</div>
+  <div class="quad-leg-item"><div class="quad-leg-dot" style="background:#8b5cf6"></div>Q3: 31–45</div>
+  <div class="quad-leg-item"><div class="quad-leg-dot" style="background:#f59e0b"></div>Q4: 46–60</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Utilitários ───────────────────────────────────────────────────────────────
+function quadrante(n) {
+  if (n <= 15) return 'Q1';
+  if (n <= 30) return 'Q2';
+  if (n <= 45) return 'Q3';
+  return 'Q4';
+}
+
+function corChip(n) {
+  const q = quadrante(n);
+  return {Q1:'chip-q1', Q2:'chip-q2', Q3:'chip-q3', Q4:'chip-q4'}[q];
+}
+
+function sihColor(sih) {
+  if (sih >= 90) return '#10b981';
+  if (sih >= 80) return '#f59e0b';
+  if (sih >= 70) return '#06b6d4';
+  return '#ef4444';
+}
+
+function sihRating(sih) {
+  if (sih >= 92) return '🔥 ELITE';
+  if (sih >= 85) return '✅ ALTO';
+  if (sih >= 75) return '🟡 MÉDIO';
+  return '⚠️ BAIXO';
+}
+
+// ── Renderização ──────────────────────────────────────────────────────────────
+function renderJogos(data) {
+  const container = document.getElementById('qm-resultados');
+  const legend = document.getElementById('qm-legend');
+
+  if (!data.jogos || data.jogos.length === 0) {
+    container.innerHTML = `
+      <div class="qm-panel text-center py-4">
+        <i class="bi bi-exclamation-triangle" style="font-size:2rem; color:#f59e0b"></i>
+        <p class="text-secondary mt-2 mb-0">Nenhum jogo sobreviveu aos filtros. Tente aumentar os candidatos Monte Carlo.</p>
+      </div>`;
+    return;
+  }
+
+  legend.style.cssText = '';
+
+  const meta = data.meta || {};
+  let html = `<div class="jogos-grid">`;
+
+  data.jogos.forEach((jogo, idx) => {
+    const color = sihColor(jogo.sih);
+    const rating = sihRating(jogo.sih);
+    const pct = `${(jogo.sih / 100 * 360).toFixed(0)}deg`;
+    const scores = jogo.scores || {};
+    const analise = jogo.analise || {};
+    const sigma = analise.sigma_soma !== undefined ? analise.sigma_soma : '?';
+    const sigmaStr = sigma > 0 ? `+${sigma}σ` : `${sigma}σ`;
+
+    // Chips das dezenas
+    const chipsHtml = jogo.dezenas.map(n => `
+      <span class="dezena-chip ${corChip(n)}">${String(n).padStart(2,'0')}</span>
+    `).join('');
+
+    // Badges dos filtros
+    const filtros = jogo.filtros_passados || {};
+    const filtrosHtml = Object.entries({
+      'Calendário': filtros.calendario,
+      'Geometria': filtros.geometria,
+      'Progressão': filtros.progressao,
+      'Contrarian': filtros.contrarian,
+    }).map(([nome, ok]) => `
+      <span class="filtro-badge">${ok ? '✅' : '❌'} ${nome}</span>
+    `).join('');
+
+    // Barras de score
+    const scoreItems = [
+      { label: 'Calendário', max: 30, val: scores.calendario || 0, color: '#10b981' },
+      { label: 'Geometria',  max: 25, val: scores.geometria  || 0, color: '#06b6d4' },
+      { label: 'Soma Cauda', max: 20, val: scores.soma       || 0, color: '#8b5cf6' },
+      { label: 'Dispersão',  max: 15, val: scores.dispersao  || 0, color: '#f59e0b' },
+      { label: 'Entropia',   max: 10, val: scores.entropia   || 0, color: '#ec4899' },
+    ];
+    const barsHtml = scoreItems.map(s => {
+      const pctBar = ((s.val / s.max) * 100).toFixed(0);
+      return `
+        <div class="score-bar-row">
+          <span class="score-bar-label">${s.label}</span>
+          <div class="score-bar-track">
+            <div class="score-bar-fill" style="width:${pctBar}%; background:${s.color};"></div>
+          </div>
+          <span class="score-bar-val">${s.val.toFixed(1)}</span>
+        </div>`;
+    }).join('');
+
+    html += `
+      <div class="jogo-card">
+        <div class="card-accent"></div>
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+
+          <div style="flex:1; min-width:240px;">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span style="font-size:0.7rem; font-weight:700; letter-spacing:1px; color:#64748b; text-transform:uppercase;">
+                Jogo #${idx + 1}
+              </span>
+              <span style="font-size:0.7rem; color:#f59e0b; font-weight:600;">
+                ${sigmaStr} acima da média histórica
+              </span>
+            </div>
+            <div class="dezenas-wrap">${chipsHtml}</div>
+            <div class="filtros-row">${filtrosHtml}</div>
+          </div>
+
+          <!-- SIH Gauge -->
+          <div class="sih-wrap">
+            <div class="sih-gauge-outer" style="--sih-color:${color}; --sih-pct:${pct};">
+              <div class="sih-gauge-inner">
+                <div class="sih-value" style="color:${color};">${jogo.sih}</div>
+                <div class="sih-label-sub">SIH</div>
+              </div>
+            </div>
+            <div class="sih-tag">${rating}</div>
+          </div>
+        </div>
+
+        <!-- Score Bars -->
+        <div class="score-bars mt-2">${barsHtml}</div>
+
+        <!-- Justificativa -->
+        <div class="justificativa-box">
+          <span class="prompt">QUANT&gt; </span>${jogo.justificativa || '—'}
+        </div>
+
+        <!-- Footer -->
+        <div class="card-footer-qm">
+          <div class="d-flex gap-2 align-items-center">
+            <div class="soma-badge">Σ ${jogo.soma}</div>
+            <span style="font-size:0.7rem; color:#64748b;">
+              ${analise.quadrantes_cobertos || '?'} quadrantes · ${analise.n_alta_entropia || 0} alta-entropia · ${analise.n_abaixo_31 || 0} ≤ 31
+            </span>
+          </div>
+          <button class="btn-copy" onclick="copiarJogo(this, '${jogo.dezenas.join(', ')}')" title="Copiar dezenas">
+            <i class="bi bi-clipboard"></i> Copiar
+          </button>
+        </div>
+      </div>`;
+  });
+
+  html += `</div>`;
+
+  // Meta painel
+  if (meta.n_candidatos_gerados) {
+    const tx = meta.taxa_aprovacao || 0;
+    const rej = meta.rejeicoes || {};
+    html += `
+      <div class="meta-panel mt-3">
+        <div class="d-flex flex-wrap gap-3">
+          <span><strong>${Number(meta.n_candidatos_gerados).toLocaleString('pt-BR')}</strong> candidatos gerados</span>
+          <span><strong>${meta.n_sobreviventes}</strong> sobreviventes (${tx}% pass-rate)</span>
+          <span>Rejeitados → Calendário: <strong>${rej.calendario||0}</strong> · Geometria: <strong>${rej.geometria||0}</strong> · Progressão: <strong>${rej.progressao||0}</strong> · Contrarian: <strong>${rej.contrarian||0}</strong></span>
+        </div>
+        <div class="mt-1 text-muted" style="font-style:italic; font-size:0.7rem;">${meta.axioma || ''}</div>
+      </div>`;
+  }
+
+  container.innerHTML = html;
+
+  // Re-aplicar efeitos visuais premium nos novos cards
+  if (window.lmApplyTilt)  window.lmApplyTilt();
+  if (window.lmInitSweep)  window.lmInitSweep();
+}
+
+// ── Copiar ────────────────────────────────────────────────────────────────────
+function copiarJogo(btn, texto) {
+  navigator.clipboard.writeText(texto).then(() => {
+    btn.innerHTML = '<i class="bi bi-check-lg"></i> Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.innerHTML = '<i class="bi bi-clipboard"></i> Copiar';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// ── Execução ──────────────────────────────────────────────────────────────────
+let loadingInterval = null;
+const loadingMessages = [
+  'Gerando candidatos aleatórios com NumPy...',
+  'Aplicando Filtro de Calendário (viés de datas)...',
+  'Aplicando Filtro de Geometria (volante 6×10)...',
+  'Aplicando Filtro de Progressão (sequências aritméticas)...',
+  'Executando análise Contrarian (mapa de manada)...',
+  'Calculando Score de Improbabilidade Humana (SIH)...',
+  'Selecionando elite por máximo EV...',
+];
+let msgIdx = 0;
+
+function executarMestre() {
+  const qtd = parseInt(document.getElementById('qtdRange').value);
+  const mc = parseInt(document.getElementById('mcRange').value);
+  const btn = document.getElementById('btnExecutar');
+
+  btn.disabled = true;
+  document.getElementById('qm-loading').style.display = 'block';
+  document.getElementById('qm-resultados').innerHTML = '';
+  document.getElementById('qm-legend').style.cssText = 'display:none!important;';
+  msgIdx = 0;
+
+  const subEl = document.getElementById('loading-sub');
+  subEl.textContent = loadingMessages[0];
+  loadingInterval = setInterval(() => {
+    msgIdx = (msgIdx + 1) % loadingMessages.length;
+    subEl.textContent = loadingMessages[msgIdx];
+  }, 900);
+
+  fetch('/megasena/api/quant-master', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ qtd, n_candidatos: mc }),
+  })
+  .then(r => r.json())
+  .then(data => {
+    clearInterval(loadingInterval);
+    document.getElementById('qm-loading').style.display = 'none';
+    btn.disabled = false;
+    if (data.erro) {
+      document.getElementById('qm-resultados').innerHTML = `
+        <div class="qm-panel text-center py-3">
+          <i class="bi bi-exclamation-octagon text-danger fs-3"></i>
+          <p class="text-danger mt-2 mb-0">${data.erro}</p>
+        </div>`;
+    } else {
+      renderJogos(data);
+    }
+  })
+  .catch(err => {
+    clearInterval(loadingInterval);
+    document.getElementById('qm-loading').style.display = 'none';
+    btn.disabled = false;
+    document.getElementById('qm-resultados').innerHTML = `
+      <div class="qm-panel text-center py-3">
+        <i class="bi bi-wifi-off text-danger fs-3"></i>
+        <p class="text-danger mt-2 mb-0">Erro de conexão: ${err.message}</p>
+      </div>`;
+  });
+}
+</script>
+{% endblock %}

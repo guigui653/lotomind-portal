@@ -11,7 +11,7 @@ megasena_bp = Blueprint('megasena', __name__, template_folder='../../templates/m
 
 # ── Inicialização Lazy ────────────────────────────────────
 
-_cache = {'dados': None, 'engine': None, 'gerador': None, 'avaliador': None}
+_cache = {'dados': None, 'engine': None, 'gerador': None, 'avaliador': None, 'trade_engine': None, 'quant_master': None}
 
 
 def _get_engine():
@@ -223,7 +223,86 @@ def monte_carlo():
 def atualizar():
     _cache['dados'] = None
     _cache['avaliador'] = None
+    _cache['trade_engine'] = None
+    _cache['quant_master'] = None
     return jsonify({'status': 'ok', 'mensagem': 'Cache limpo.'})
+
+
+def _get_trade_engine_mega():
+    """Retorna (ou inicializa) o MegaMindTradeEngine com historico carregado."""
+    if _cache['trade_engine'] is None:
+        from modules.megasena.trade_engine import MegaMindTradeEngine
+        te = MegaMindTradeEngine()
+        dados = get_dados()
+        if dados:
+            te.carregar_historico(dados['df'])
+        _cache['trade_engine'] = te
+    return _cache['trade_engine']
+
+
+# ============================================================
+#  ROTAS — MEGAMIND TRADE ENGINE (Pilares 1, 2 e 3)
+# ============================================================
+
+@megasena_bp.route('/trade')
+@login_required
+def trade_page():
+    """Dashboard MegaMind Trade Engine."""
+    dados = get_dados()
+    if dados is None:
+        return render_template('megasena/trade.html', erro=True)
+    return render_template('megasena/trade.html', erro=False,
+                           ultimo=dados['ultimo'], total_jogos=dados['total_jogos'])
+
+
+@megasena_bp.route('/api/trade-analise')
+@login_required
+def api_trade_analise_mega():
+    """
+    JSON completo dos 3 Pilares MegaMind:
+    Pilar 1 -> Trend quinzenal + consolidacao mensal
+    Pilar 2 -> SMA-50 + Bollinger da soma
+    Pilar 3 -> Backtest 10 concursos com Sharpe Ratio
+    """
+    te = _get_trade_engine_mega()
+    if not te._carregado:
+        return jsonify({'erro': 'Historico nao carregado'}), 500
+    try:
+        resultado = te.analise_completa()
+        return jsonify(_serializar_mega(resultado))
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+@megasena_bp.route('/api/trade-gerar', methods=['POST'])
+@login_required
+def api_trade_gerar_mega():
+    """
+    Gera N palpites (padrao 5) filtrados pelo Bollinger da soma,
+    com regra de quadrantes e pelo menos 1 dezena oversold.
+    """
+    te = _get_trade_engine_mega()
+    if not te._carregado:
+        return jsonify({'erro': 'Historico nao carregado'}), 500
+
+    body = request.get_json(silent=True) or {}
+    qtd = min(int(body.get('qtd', 5)), 10)
+
+    try:
+        palpites = te.gerar_palpites(qtd=qtd)
+        bollinger = te.calcular_bollinger_soma()
+        oversold = te.identificar_oversold(top_n=5)
+        trend = te.calcular_trend_quinzenal()
+
+        return jsonify(_serializar_mega({
+            'palpites': palpites,
+            'bollinger': bollinger,
+            'oversold_top5': oversold,
+            'trend_quinzenal': trend[:10],
+            'total_gerados': len(palpites),
+        }))
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
 
 
 # ════════════════════════════════════════════════════════════
@@ -311,5 +390,116 @@ def api_gerar_com_boletim():
         jogos_com_boletim.sort(key=lambda x: x['boletim']['nota_final'], reverse=True)
 
         return jsonify(_serializar_mega({'jogos': jogos_com_boletim}))
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+@megasena_bp.route('/api/gerar-jogo-fisico', methods=['POST'])
+@login_required
+def api_gerar_jogo_fisico():
+    """Gera jogos da Mega-Sena usando o simulador físico e termodinâmico."""
+    dados = get_dados()
+    if dados is None:
+        return jsonify({'erro': 'Dados não disponíveis'}), 500
+
+    avaliador = _get_avaliador()
+    body = request.get_json(silent=True) or {}
+    qtd = min(int(body.get('qtd', 1)), 5)
+    n_simulacoes = min(int(body.get('simulacoes', 5)), 20)
+
+    from modules.analise_avancada.fisica_teorica import GloboFisicoSimulator
+
+    simulador = GloboFisicoSimulator(
+        universo=60,
+        dezenas_sorteio=6,
+        iteracoes=200
+    )
+
+    try:
+        jogos = []
+        for i in range(qtd):
+            res_fisico = simulador.gerar_jogo_fisico(
+                historico_sorteios=avaliador.historico_listas if avaliador else [],
+                n_simulacoes=n_simulacoes
+            )
+            jogo_gerado = res_fisico['jogo']
+            boletim = avaliador.avaliar_e_pontuar_jogo(jogo_gerado)
+
+            jogos.append({
+                'jogo': jogo_gerado,
+                'fisica': {
+                    'confianca_fisica': res_fisico['confianca_fisica'],
+                    'n_simulacoes': res_fisico['n_simulacoes'],
+                },
+                'boletim': boletim
+            })
+
+        return jsonify(_serializar_mega({'jogos': jogos}))
+
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+# ════════════════════════════════════════════════════════════
+#  QUANT-MASTER — Gerador Elite (Behavioral Bias Filter + SIH)
+# ════════════════════════════════════════════════════════════
+
+def _get_quant_master():
+    """Retorna (ou inicializa) o QuantMasterEngine com histórico carregado."""
+    if _cache['quant_master'] is None:
+        from modules.megasena.quant_master import QuantMasterEngine
+        qm = QuantMasterEngine()
+        dados = get_dados()
+        if dados:
+            qm.carregar_historico(dados['df'])
+        _cache['quant_master'] = qm
+    return _cache['quant_master']
+
+
+@megasena_bp.route('/quant-master')
+@login_required
+def quant_master_page():
+    """Página do Gerador MESTRE — Quant-Master."""
+    dados = get_dados()
+    if dados is None:
+        return render_template('megasena/quant_master.html', erro=True)
+    qm = _get_quant_master()
+    axioma = qm.info_axioma()
+    # Converter row Pandas para dict puro antes de passar ao template
+    ultimo_row = dados['ultimo']
+    ultimo = {
+        'Concurso': int(ultimo_row['Concurso']),
+        'Data': str(ultimo_row.get('Data', '')),
+        'Dezenas': list(ultimo_row['Dezenas']),
+        'Soma': int(ultimo_row['Soma']),
+    }
+    return render_template(
+        'megasena/quant_master.html',
+        erro=False,
+        axioma=axioma,
+        total_jogos=dados['total_jogos'],
+        ultimo=ultimo,
+    )
+
+
+@megasena_bp.route('/api/quant-master', methods=['POST'])
+@login_required
+def api_quant_master():
+    """
+    API JSON do Quant-Master.
+    Body: {"qtd": 5, "n_candidatos": 50000}
+    Retorna lista de jogos com SIH e justificativa quantitativa.
+    """
+    qm = _get_quant_master()
+    if not qm._carregado:
+        return jsonify({'erro': 'Histórico não carregado'}), 500
+
+    body = request.get_json(silent=True) or {}
+    qtd = min(int(body.get('qtd', 5)), 10)
+    n_candidatos = min(int(body.get('n_candidatos', 50_000)), 200_000)
+
+    try:
+        resultado = qm.gerar_jogos(qtd=qtd, n_candidatos=n_candidatos)
+        return jsonify(_serializar_mega(resultado))
     except Exception as e:
         return jsonify({'erro': str(e)}), 500

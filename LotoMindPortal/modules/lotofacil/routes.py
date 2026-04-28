@@ -12,7 +12,7 @@ lotofacil_bp = Blueprint('lotofacil', __name__, template_folder='../../templates
 
 # ── Inicialização Lazy ────────────────────────────────────
 
-_cache = {'dados': None, 'engine': None, 'intel_engine': None, 'predictor': None, 'avaliador': None}
+_cache = {'dados': None, 'engine': None, 'intel_engine': None, 'predictor': None, 'avaliador': None, 'trade_engine': None, 'hybrid_engine': None}
 
 
 def _get_engine():
@@ -219,7 +219,87 @@ def atualizar():
     _cache['intel_engine'] = None
     _cache['predictor'] = None
     _cache['avaliador'] = None
+    _cache['trade_engine'] = None
+    _cache['hybrid_engine'] = None
     return jsonify({'status': 'ok', 'mensagem': 'Cache limpo.'})
+
+
+def _get_trade_engine():
+    """Retorna (ou inicializa) o LotoMindTradeEngine com histórico carregado."""
+    if _cache['trade_engine'] is None:
+        from modules.lotofacil.trade_engine import LotoMindTradeEngine
+        te = LotoMindTradeEngine()
+        dados = get_dados()
+        if dados:
+            te.carregar_historico(dados['df'])
+        _cache['trade_engine'] = te
+    return _cache['trade_engine']
+
+
+# ════════════════════════════════════════════════════════════
+#  ROTAS — TRADE ENGINE (Pilares 1, 2 e 3)
+# ════════════════════════════════════════════════════════════
+
+@lotofacil_bp.route('/trade')
+@login_required
+def trade_page():
+    """Renderiza o dashboard 'Trading Room' do LotoMind Trade Engine."""
+    dados = get_dados()
+    if dados is None:
+        return render_template('lotofacil/trade.html', erro=True)
+    return render_template('lotofacil/trade.html', erro=False,
+                           ultimo=dados['ultimo'], total_jogos=dados['total_jogos'])
+
+
+@lotofacil_bp.route('/api/trade-analise')
+@login_required
+def api_trade_analise():
+    """
+    Endpoint JSON: retorna análise completa dos 3 Pilares.
+    Pilar 1 → dezenas semanal, quinzenal, âncoras
+    Pilar 2 → SMA-10 por âncora + Bollinger da soma
+    Pilar 3 → backtest dos últimos 5 concursos
+    """
+    te = _get_trade_engine()
+    if not te._carregado:
+        return jsonify({'erro': 'Histórico não carregado'}), 500
+    try:
+        resultado = te.analise_completa()
+        return jsonify(_serializar(resultado))
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+@lotofacil_bp.route('/api/trade-gerar', methods=['POST'])
+@login_required
+def api_trade_gerar():
+    """
+    Endpoint JSON: gera N palpites (padrão 5) filtrados pelas Bandas de Bollinger,
+    baseados nas dezenas âncora do Pilar 1.
+    """
+    te = _get_trade_engine()
+    if not te._carregado:
+        return jsonify({'erro': 'Histórico não carregado'}), 500
+
+    body = request.get_json(silent=True) or {}
+    qtd = min(int(body.get('qtd', 5)), 10)
+
+    try:
+        palpites = te.gerar_palpites(qtd=qtd)
+        bollinger = te.calcular_bollinger()
+        semana = te.calcular_dezenas_semana()
+        quinzena = te.calcular_dezenas_quinzena()
+        ancoras = te.calcular_ancoras(semana, quinzena)
+
+        return jsonify(_serializar({
+            'palpites': palpites,
+            'bollinger': bollinger,
+            'ancoras': ancoras,
+            'total_gerados': len(palpites),
+        }))
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
 
 
 # ════════════════════════════════════════════════════════════
@@ -407,3 +487,115 @@ def api_gerar_com_boletim():
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
+
+@lotofacil_bp.route('/api/gerar-jogo-fisico', methods=['POST'])
+@login_required
+def api_gerar_jogo_fisico():
+    """Gera jogos usando o simulador físico e termodinâmico."""
+    dados = get_dados()
+    if dados is None:
+        return jsonify({'erro': 'Dados não disponíveis'}), 500
+
+    avaliador = _get_avaliador()
+    body = request.get_json(silent=True) or {}
+    qtd = min(int(body.get('qtd', 1)), 5)
+    n_simulacoes = min(int(body.get('simulacoes', 5)), 20)
+    
+    from modules.analise_avancada.fisica_teorica import GloboFisicoSimulator
+    
+    simulador = GloboFisicoSimulator(
+        universo=25,
+        dezenas_sorteio=15,
+        iteracoes=150
+    )
+
+    try:
+        jogos = []
+        for i in range(qtd):
+            # Passar histórico (que o avaliador já tem ou que podemos pegar do avaliador.historico_listas) para termodinâmica
+            res_fisico = simulador.gerar_jogo_fisico(
+                historico_sorteios=avaliador.historico_listas if avaliador else [],
+                n_simulacoes=n_simulacoes
+            )
+            jogo_gerado = res_fisico['jogo']
+            boletim = avaliador.avaliar_e_pontuar_jogo(jogo_gerado)
+            
+            jogos.append({
+                'jogo': jogo_gerado,
+                'fisica': {
+                    'confianca_fisica': res_fisico['confianca_fisica'],
+                    'n_simulacoes': res_fisico['n_simulacoes'],
+                },
+                'boletim': boletim
+            })
+            
+        return jsonify(_serializar({'jogos': jogos}))
+        
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+# ════════════════════════════════════════════════════════════
+#  ROTAS — MOTOR HÍBRIDO MONTE CARLO + IA
+# ════════════════════════════════════════════════════════════
+
+def _get_hybrid_engine():
+    """Retorna (ou inicializa) o LotofacilHybridEngine com dependências."""
+    if _cache['hybrid_engine'] is None:
+        from modules.lotofacil.monte_carlo import LotofacilMonteCarlo
+        from modules.lotofacil.hybrid_engine import LotofacilHybridEngine
+        dados = get_dados()
+        if dados is None:
+            return None
+        mc   = LotofacilMonteCarlo(_get_engine(), dados['df'])
+        intel = _get_intel_engine()
+        _cache['hybrid_engine'] = LotofacilHybridEngine(mc, intel)
+    return _cache['hybrid_engine']
+
+
+@lotofacil_bp.route('/hibrido')
+@login_required
+def hibrido_page():
+    """Renderiza o dashboard do Motor Híbrido MC + IA."""
+    dados = get_dados()
+    if dados is None:
+        return render_template('lotofacil/hibrido.html', erro=True)
+    return render_template('lotofacil/hibrido.html',
+                           erro=False,
+                           ultimo=dados['ultimo'],
+                           total_jogos=dados['total_jogos'])
+
+
+@lotofacil_bp.route('/api/gerar-hibrido', methods=['POST'])
+@login_required
+def api_gerar_hibrido():
+    """
+    Endpoint JSON: executa o funil Monte Carlo → IA.
+
+    Body JSON (opcional):
+        qtd         : int  — quantidade de apostas desejadas  (padrão 5, max 20)
+        simulacoes  : int  — simulações Monte Carlo           (padrão 10000, max 50000)
+
+    Retorna:
+        {
+            apostas    : [{ dezenas, score_mc, score_ia, classificacao, detalhes }],
+            stats_mc   : { simulacoes_solicitadas, cenarios_gerados, cenarios_avaliados },
+            tempo_ms   : float
+        }
+    """
+    hybrid = _get_hybrid_engine()
+    if hybrid is None:
+        return jsonify({'erro': 'Dados históricos não disponíveis'}), 500
+
+    body       = request.get_json(silent=True) or {}
+    qtd        = max(1, min(int(body.get('qtd', 5)),        20))
+    simulacoes = max(1_000, min(int(body.get('simulacoes', 10_000)), 50_000))
+
+    try:
+        resultado = hybrid.gerar_aposta_hibrida(
+            qtd_apostas    = qtd,
+            num_simulacoes = simulacoes,
+        )
+        return jsonify(_serializar(resultado))
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500

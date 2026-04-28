@@ -1,0 +1,538 @@
+{% extends "base.html" %}
+{% block title %}LotoMind — Funil Híbrido Monte Carlo + IA{% endblock %}
+{% block page_title %}⚡ Motor Híbrido MC + IA — Lotofácil{% endblock %}
+
+{% block content %}
+{% if erro %}
+<div class="alert alert-danger text-center mt-4">
+    <h4><i class="bi bi-exclamation-triangle"></i> Erro ao carregar dados</h4>
+    <p>Verifique sua conexão e tente novamente.</p>
+</div>
+{% else %}
+
+<!-- ═══════════════════════════════════════════════════
+     HERO HEADER
+═══════════════════════════════════════════════════ -->
+<div class="hybrid-hero text-center mb-5">
+    <div class="hybrid-badge mb-3">
+        <span class="hybrid-badge-inner">
+            <i class="bi bi-cpu-fill"></i> LOTOFÁCIL — MOTOR HÍBRIDO
+        </span>
+    </div>
+    <h1 class="hybrid-title">
+        <span class="hybrid-title-mc">Monte Carlo</span>
+        <span class="hybrid-title-sep">⟶</span>
+        <span class="hybrid-title-ia">Inteligência Artificial</span>
+    </h1>
+    <p class="hybrid-subtitle">
+        Funil de Precisão em 3 Fases • Geração Vetorial de Cenários • Scoring por 8 Diretrizes
+    </p>
+    <div class="hybrid-stats-row">
+        <div class="hybrid-stat-pill">
+            <i class="bi bi-database-fill"></i>
+            {{ total_jogos }} concursos históricos
+        </div>
+        <div class="hybrid-stat-pill">
+            <i class="bi bi-layers-fill"></i>
+            Universo C(25,15)
+        </div>
+        <div class="hybrid-stat-pill">
+            <i class="bi bi-shield-check-fill"></i>
+            10 Diretrizes Ativas
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PAINEL DE CONFIGURAÇÃO
+═══════════════════════════════════════════════════ -->
+<div class="card hybrid-config-card mb-4" id="painel-config">
+    <div class="card-body">
+        <h5 class="hybrid-section-title">
+            <i class="bi bi-sliders"></i> Configurar Funil de Geração
+        </h5>
+        <p class="text-muted small mb-4">Ajuste os parâmetros do Monte Carlo e da IA antes de executar o funil.</p>
+
+        <div class="row g-4 align-items-end">
+            <!-- Simulações MC -->
+            <div class="col-md-4">
+                <label class="hybrid-label" for="sliderSimulacoes">
+                    <i class="bi bi-dice-6-fill" style="color: var(--loto-magenta)"></i>
+                    Simulações Monte Carlo
+                </label>
+                <div class="hybrid-slider-wrapper">
+                    <input type="range" class="hybrid-slider" id="sliderSimulacoes"
+                           min="5000" max="50000" step="5000" value="10000"
+                           oninput="document.getElementById('valSimulacoes').textContent = (+this.value).toLocaleString('pt-BR')">
+                    <div class="d-flex justify-content-between">
+                        <span class="small text-muted">5.000</span>
+                        <span class="hybrid-slider-val" id="valSimulacoes">10.000</span>
+                        <span class="small text-muted">50.000</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Apostas desejadas -->
+            <div class="col-md-3">
+                <label class="hybrid-label" for="selectQtd">
+                    <i class="bi bi-stars" style="color: var(--loto-lilac)"></i>
+                    Apostas Finais
+                </label>
+                <select class="form-select hybrid-select" id="selectQtd">
+                    <option value="1">1 aposta</option>
+                    <option value="3">3 apostas</option>
+                    <option value="5" selected>5 apostas</option>
+                    <option value="8">8 apostas</option>
+                    <option value="10">10 apostas</option>
+                </select>
+            </div>
+
+            <!-- Botão de execução -->
+            <div class="col-md-5">
+                <button class="btn btn-hybrid btn-lg w-100" id="btnGerar" onclick="executarFunil()">
+                    <i class="bi bi-play-circle-fill me-2"></i>
+                    Executar Funil MC + IA
+                </button>
+            </div>
+        </div>
+
+        <!-- Fases visuais (estáticas) -->
+        <div class="hybrid-phases mt-4">
+            <div class="hybrid-phase" id="phase1">
+                <div class="hybrid-phase-num">1</div>
+                <div class="hybrid-phase-info">
+                    <span class="hybrid-phase-name">Monte Carlo</span>
+                    <span class="hybrid-phase-desc">Geração Vetorial de Cenários</span>
+                </div>
+                <i class="bi bi-dice-6 hybrid-phase-icon"></i>
+            </div>
+            <div class="hybrid-phase-arrow">→</div>
+            <div class="hybrid-phase" id="phase2">
+                <div class="hybrid-phase-num">2</div>
+                <div class="hybrid-phase-info">
+                    <span class="hybrid-phase-name">IA — Scoring</span>
+                    <span class="hybrid-phase-desc">Filtros de Padrão e Avaliação</span>
+                </div>
+                <i class="bi bi-cpu-fill hybrid-phase-icon"></i>
+            </div>
+            <div class="hybrid-phase-arrow">→</div>
+            <div class="hybrid-phase" id="phase3">
+                <div class="hybrid-phase-num">3</div>
+                <div class="hybrid-phase-info">
+                    <span class="hybrid-phase-name">Ranking Final</span>
+                    <span class="hybrid-phase-desc">Top Score IA</span>
+                </div>
+                <i class="bi bi-trophy-fill hybrid-phase-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     LOADING OVERLAY
+═══════════════════════════════════════════════════ -->
+<div id="hybridLoading" class="hybrid-loading" style="display:none;">
+    <div class="hybrid-loading-inner">
+        <!-- Anel animado -->
+        <div class="hybrid-ring-wrapper">
+            <svg class="hybrid-ring" viewBox="0 0 100 100">
+                <circle class="hybrid-ring-track" cx="50" cy="50" r="42" />
+                <circle class="hybrid-ring-fill" cx="50" cy="50" r="42"
+                        stroke-dasharray="264" stroke-dashoffset="264" id="ringProgress"/>
+            </svg>
+            <div class="hybrid-ring-icon" id="ringIcon">🎲</div>
+        </div>
+        <!-- Texto de fase -->
+        <div class="hybrid-loading-text" id="loadingText">
+            Inicializando o Funil...
+        </div>
+        <div class="hybrid-loading-sub" id="loadingSub">
+            Preparando Monte Carlo
+        </div>
+        <!-- Mini progress bar -->
+        <div class="hybrid-mini-progress mt-3">
+            <div class="hybrid-mini-fill" id="miniProgressFill" style="width:0%"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     STATS BAR (pós-execução)
+═══════════════════════════════════════════════════ -->
+<div id="statsBar" class="hybrid-stats-bar mb-4" style="display:none;">
+    <div class="hybrid-kpi">
+        <div class="hybrid-kpi-icon"><i class="bi bi-dice-6-fill"></i></div>
+        <div>
+            <div class="hybrid-kpi-value" id="kpiSimulacoes">—</div>
+            <div class="hybrid-kpi-label">Simulações MC</div>
+        </div>
+    </div>
+    <div class="hybrid-kpi">
+        <div class="hybrid-kpi-icon" style="color: var(--loto-lilac)"><i class="bi bi-funnel-fill"></i></div>
+        <div>
+            <div class="hybrid-kpi-value" id="kpiCenarios">—</div>
+            <div class="hybrid-kpi-label">Cenários Avaliados</div>
+        </div>
+    </div>
+    <div class="hybrid-kpi">
+        <div class="hybrid-kpi-icon" style="color: var(--loto-violet)"><i class="bi bi-trophy-fill"></i></div>
+        <div>
+            <div class="hybrid-kpi-value" id="kpiScore">—</div>
+            <div class="hybrid-kpi-label">Score IA Máximo</div>
+        </div>
+    </div>
+    <div class="hybrid-kpi">
+        <div class="hybrid-kpi-icon" style="color: var(--accent-green)"><i class="bi bi-lightning-charge-fill"></i></div>
+        <div>
+            <div class="hybrid-kpi-value" id="kpiTempo">—</div>
+            <div class="hybrid-kpi-label">Tempo (ms)</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     RESULTADOS
+═══════════════════════════════════════════════════ -->
+<div id="resultadoHibrido"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     GRÁFICO DE DISPERSÃO
+═══════════════════════════════════════════════════ -->
+<div id="scatterSection" class="card glass-card mb-5" style="display:none;">
+    <div class="card-body">
+        <h5 class="hybrid-section-title">
+            <i class="bi bi-graph-up-arrow"></i> Dispersão MC vs. Score IA
+        </h5>
+        <p class="text-muted small">
+            Cada ponto representa um dos cenários mais bem avaliados.<br>
+            <span style="color:var(--loto-magenta)">● Apostas selecionadas</span>
+            &nbsp;|&nbsp;
+            Eixo X = Soma das dezenas &nbsp;|&nbsp; Eixo Y = Score IA
+        </p>
+        <canvas id="chartScatter" height="320"></canvas>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if not erro %}
+<script>
+// ══════════════════════════════════════════════════
+//  ANIMAÇÃO DE LOADING — 3 FASES
+// ══════════════════════════════════════════════════
+
+const FASES = [
+    {
+        pct: 33, icon: '🎲', fase: '1',
+        texto: 'Monte Carlo calculando cenários...',
+        sub: 'Geração vetorial com pesos históricos',
+    },
+    {
+        pct: 66, icon: '🧠', fase: '2',
+        texto: 'IA analisando padrões e filtrando dezenas...',
+        sub: 'Aplicando 8 diretrizes de qualidade',
+    },
+    {
+        pct: 95, icon: '🏆', fase: '3',
+        texto: 'Montando ranking final por Score IA...',
+        sub: 'Selecionando as melhores apostas',
+    },
+];
+
+let faseTimer = null;
+
+function iniciarAnimacaoLoading(numSim) {
+    document.getElementById('hybridLoading').style.display = 'flex';
+    document.getElementById('painel-config').style.opacity  = '0.4';
+    document.getElementById('painel-config').style.pointerEvents = 'none';
+    document.getElementById('resultadoHibrido').innerHTML = '';
+    document.getElementById('statsBar').style.display = 'none';
+    document.getElementById('scatterSection').style.display = 'none';
+
+    // Atualizar sub-texto do slider com o valor real
+    FASES[0].sub = `Gerando ${(+numSim).toLocaleString('pt-BR')} cenários com pesos históricos`;
+
+    let fasIdx = 0;
+    aplicarFase(FASES[fasIdx]);
+    faseTimer = setInterval(() => {
+        fasIdx++;
+        if (fasIdx < FASES.length) aplicarFase(FASES[fasIdx]);
+    }, 900);
+}
+
+function aplicarFase(f) {
+    document.getElementById('ringIcon').textContent     = f.icon;
+    document.getElementById('loadingText').textContent  = f.texto;
+    document.getElementById('loadingSub').textContent   = f.sub;
+    document.getElementById('miniProgressFill').style.width = f.pct + '%';
+    document.getElementById('ringProgress').style.strokeDashoffset =
+        264 - (264 * f.pct / 100);
+
+    // Highlight da fase no painel (opacidade via classe)
+    ['phase1','phase2','phase3'].forEach((id,i) => {
+        const el = document.getElementById(id);
+        el.classList.remove('phase-active','phase-done');
+        if (i + 1 < parseInt(f.fase)) el.classList.add('phase-done');
+        if (i + 1 === parseInt(f.fase)) el.classList.add('phase-active');
+    });
+}
+
+function pararAnimacaoLoading() {
+    clearInterval(faseTimer);
+    document.getElementById('hybridLoading').style.display = 'none';
+    document.getElementById('painel-config').style.opacity = '1';
+    document.getElementById('painel-config').style.pointerEvents = 'auto';
+
+    // Fases todas como done
+    ['phase1','phase2','phase3'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('phase-active');
+        el.classList.add('phase-done');
+    });
+
+    // Resetar após 2s
+    setTimeout(() => {
+        ['phase1','phase2','phase3'].forEach(id =>
+            document.getElementById(id).classList.remove('phase-done')
+        );
+    }, 2000);
+}
+
+// ══════════════════════════════════════════════════
+//  CHAMADA PRINCIPAL
+// ══════════════════════════════════════════════════
+
+async function executarFunil() {
+    const btn    = document.getElementById('btnGerar');
+    const qtd    = parseInt(document.getElementById('selectQtd').value);
+    const simul  = parseInt(document.getElementById('sliderSimulacoes').value);
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processando...';
+
+    iniciarAnimacaoLoading(simul);
+
+    try {
+        const resp = await fetch('/lotofacil/api/gerar-hibrido', {
+            method : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body   : JSON.stringify({ qtd, simulacoes: simul }),
+        });
+        const data = await resp.json();
+
+        if (data.erro) {
+            pararAnimacaoLoading();
+            document.getElementById('resultadoHibrido').innerHTML =
+                `<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> ${data.erro}</div>`;
+            return;
+        }
+
+        // Pequena pausa para a animação de fase 3 ser visível
+        await new Promise(r => setTimeout(r, 400));
+        pararAnimacaoLoading();
+        renderizarResultados(data);
+
+    } catch(e) {
+        pararAnimacaoLoading();
+        document.getElementById('resultadoHibrido').innerHTML =
+            `<div class="alert alert-danger">Erro de comunicação: ${e.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-play-circle-fill me-2"></i>Executar Funil MC + IA';
+    }
+}
+
+// ══════════════════════════════════════════════════
+//  RENDERIZAÇÃO DOS RESULTADOS
+// ══════════════════════════════════════════════════
+
+function renderizarResultados(data) {
+    const { apostas, stats_mc, tempo_ms } = data;
+
+    // Stats bar
+    document.getElementById('kpiSimulacoes').textContent = (stats_mc.simulacoes_solicitadas || 0).toLocaleString('pt-BR');
+    document.getElementById('kpiCenarios').textContent   = (stats_mc.cenarios_avaliados || 0).toLocaleString('pt-BR');
+    document.getElementById('kpiScore').textContent      = apostas.length ? apostas[0].score_ia.toFixed(1) : '—';
+    document.getElementById('kpiTempo').textContent      = tempo_ms + ' ms';
+    document.getElementById('statsBar').style.display   = 'flex';
+
+    if (!apostas.length) {
+        document.getElementById('resultadoHibrido').innerHTML =
+            '<div class="alert alert-warning">Nenhuma aposta gerada. Tente aumentar as simulações.</div>';
+        return;
+    }
+
+    // Cards de apostas
+    let html = '<div class="row g-3 mb-4">';
+    apostas.forEach((ap, idx) => {
+        const d       = ap.detalhes || {};
+        const scoreC  = ap.score_ia >= 75 ? 'elite' : (ap.score_ia >= 55 ? 'bom' : 'regular');
+        const dirCount = d.aprovadas || 0;
+        const dirTotal = d.total || 8;
+
+        const dezenasBalls = ap.dezenas.map(n =>
+            `<span class="loto-ball-hybrid">${String(n).padStart(2,'0')}</span>`
+        ).join('');
+
+        const detDiretrizes = [
+            { key:'paridade',    icon:'⚖️',  nome:'Paridade',    val: d.paridade    ? `${d.paridade.impares} ímpares`    : '—', ok: d.paridade?.aprovado },
+            { key:'primos',      icon:'🔢',  nome:'Primos',      val: d.primos      ? `${d.primos.qtd} primos`            : '—', ok: d.primos?.aprovado },
+            { key:'moldura',     icon:'🔲',  nome:'Moldura',     val: d.moldura     ? `${d.moldura.qtd_moldura} moldura`  : '—', ok: d.moldura?.aprovado },
+            { key:'soma',        icon:'➕',  nome:'Soma',        val: d.soma        ? d.soma.soma                         : '—', ok: d.soma?.aprovado },
+            { key:'sequencia',   icon:'📏',  nome:'Consecutivos',val: d.sequencia   ? `máx ${d.sequencia.max_consecutivos}` : '—', ok: d.sequencia?.aprovado },
+            { key:'atraso',      icon:'⏳',  nome:'Atrasos',     val: d.atraso      ? `+${d.atraso.score}pts`             : '—', ok: (d.atraso?.score||0) >= 5 },
+            { key:'ciclos',      icon:'🔄',  nome:'Ciclos',      val: d.ciclos      ? `${d.ciclos.score}pts`              : '—', ok: (d.ciclos?.score||0) >= 4 },
+            { key:'coocorrencia',icon:'🔗',  nome:'Coocorrência',val: d.coocorrencia? `${d.coocorrencia.score}pts`        : '—', ok: (d.coocorrencia?.score||0) >= 6 },
+        ].map(dir => `
+            <div class="hybrid-dir-badge ${dir.ok ? 'dir-ok' : 'dir-no'}">
+                <span>${dir.icon}</span>
+                <span class="dir-nome">${dir.nome}</span>
+                <span class="dir-val">${dir.val}</span>
+            </div>
+        `).join('');
+
+        html += `
+        <div class="col-md-6 col-xl-4">
+            <div class="hybrid-result-card hybrid-card-${scoreC}">
+
+                <!-- Header do card -->
+                <div class="hrc-header">
+                    <div class="hrc-rank">#${idx + 1}</div>
+                    <div class="hrc-class">${ap.classificacao}</div>
+                    <div class="hrc-score-badge">${ap.score_ia.toFixed(1)}<span>/100</span></div>
+                </div>
+
+                <!-- Dezenas -->
+                <div class="hrc-dezenas">
+                    ${dezenasBalls}
+                </div>
+
+                <!-- Barra Score IA -->
+                <div class="hrc-score-row">
+                    <span class="hrc-score-label">Score IA</span>
+                    <div class="hrc-bar-outer">
+                        <div class="hrc-bar-fill" style="width:${ap.score_ia}%"></div>
+                    </div>
+                    <span class="hrc-score-pct">${ap.score_ia.toFixed(1)}%</span>
+                </div>
+
+                <!-- Score MC -->
+                <div class="hrc-mc-score">
+                    <i class="bi bi-dice-6 me-1"></i>Score MC: ${ap.score_mc.toFixed(0)}
+                    &nbsp;|&nbsp;
+                    <i class="bi bi-check-circle me-1"></i>${dirCount}/${dirTotal} aprovadas
+                </div>
+
+                <!-- Diretrizes -->
+                <div class="hrc-diretrizes">
+                    ${detDiretrizes}
+                </div>
+
+                <!-- Soma e ação -->
+                <div class="hrc-footer">
+                    <span class="hrc-soma">Σ = ${ap.dezenas.reduce((a,b)=>a+b,0)}</span>
+                    <button class="btn-hrc-copy" onclick="copiarJogo([${ap.dezenas}], this)">
+                        <i class="bi bi-clipboard"></i> Copiar
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    });
+    html += '</div>';
+    document.getElementById('resultadoHibrido').innerHTML = html;
+
+    // Gráfico de dispersão
+    renderScatter(apostas);
+}
+
+// ══════════════════════════════════════════════════
+//  GRÁFICO DE DISPERSÃO
+// ══════════════════════════════════════════════════
+
+let scatterChart = null;
+
+function renderScatter(apostas) {
+    document.getElementById('scatterSection').style.display = 'block';
+    const ctx = document.getElementById('chartScatter');
+
+    const pontos = apostas.map((ap, idx) => ({
+        x    : ap.dezenas.reduce((a,b)=>a+b,0),
+        y    : ap.score_ia,
+        label: `#${idx+1}`,
+        dezenas: ap.dezenas,
+    }));
+
+    if (scatterChart) scatterChart.destroy();
+
+    scatterChart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label    : 'Apostas Selecionadas',
+                data     : pontos,
+                backgroundColor: pontos.map((_, i) =>
+                    i === 0 ? 'rgba(224,64,251,0.9)' :
+                    i === 1 ? 'rgba(181,100,251,0.85)' :
+                              'rgba(147,122,251,0.7)'
+                ),
+                borderColor: 'rgba(224,64,251,0.4)',
+                borderWidth: 1.5,
+                pointRadius: pontos.map((_, i) => i < 3 ? 10 : 7),
+                pointHoverRadius: 13,
+            }]
+        },
+        options: {
+            responsive: true,
+            animation : { duration: 600, easing: 'easeOutQuart' },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(18,24,42,0.95)',
+                    titleFont : { family: 'Inter', weight: '700' },
+                    bodyFont  : { family: 'Inter', size: 12 },
+                    padding   : 12,
+                    callbacks: {
+                        title: (items) => `Aposta ${items[0].raw.label}`,
+                        label: (item) => [
+                            `Score IA : ${item.raw.y.toFixed(1)}`,
+                            `Soma     : ${item.raw.x}`,
+                            `Dezenas  : ${item.raw.dezenas.join(', ')}`,
+                        ],
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'Soma das Dezenas', color: 'rgba(232,234,240,0.4)', font: { family:'Inter', size:11 } },
+                    ticks: { color: 'rgba(232,234,240,0.4)', font: { family:'Inter' } },
+                    grid : { color: 'rgba(255,255,255,0.03)' },
+                },
+                y: {
+                    title: { display: true, text: 'Score IA (0–100)', color: 'rgba(232,234,240,0.4)', font: { family:'Inter', size:11 } },
+                    min  : 0, max: 100,
+                    ticks: { color: 'rgba(232,234,240,0.4)', font: { family:'Inter' }, callback: v => v + '%' },
+                    grid : { color: 'rgba(255,255,255,0.03)' },
+                }
+            }
+        }
+    });
+}
+
+// ══════════════════════════════════════════════════
+//  UTILITÁRIOS
+// ══════════════════════════════════════════════════
+
+function copiarJogo(dezenas, btn) {
+    const texto = dezenas.map(n => String(n).padStart(2,'0')).join(' ');
+    navigator.clipboard.writeText(texto).then(() => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Copiado!';
+        btn.style.color = 'var(--accent-green)';
+        setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+    });
+}
+</script>
+{% endif %}
+{% endblock %}

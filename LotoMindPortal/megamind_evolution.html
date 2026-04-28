@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MegaMind Quant 3.0 — Apresentação Executiva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+/* ════════════════════════════════════════════
+   MegaMind Quant 3.0 — Presentation Engine
+   ════════════════════════════════════════════ */
+
+:root {
+  --void:   #020617;
+  --navy:   #0f172a;
+  --navy2:  #1e293b;
+  --cyan:   #06b6d4;
+  --cyan2:  #0891b2;
+  --gold:   #f59e0b;
+  --gold2:  #d97706;
+  --slate:  #94a3b8;
+  --light:  #f8fafc;
+  --green:  #10b981;
+  --purple: #8b5cf6;
+  --red:    #ef4444;
+
+  --glass-bg:     rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.08);
+  --glass-blur:   blur(20px);
+  --radius:       16px;
+  --transition:   all 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: 'Poppins', sans-serif;
+  background: var(--void);
+  color: var(--light);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Canvas global ── */
+#bg-canvas {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+}
+
+/* ── Slide container ── */
+.deck {
+  position: relative; z-index: 1;
+  width: 100%; height: 100%;
+}
+
+.slide {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transform: translateY(40px) scale(0.97);
+  transition: opacity 0.55s cubic-bezier(0.4,0,0.2,1),
+              transform 0.55s cubic-bezier(0.4,0,0.2,1);
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.slide.active {
+  opacity: 1; pointer-events: all;
+  transform: translateY(0) scale(1);
+}
+
+.slide.exit-up {
+  opacity: 0; pointer-events: none;
+  transform: translateY(-40px) scale(0.97);
+}
+
+/* ── Navigation ── */
+.nav-dots {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 8px; z-index: 100;
+}
+
+.nav-dot {
+  width: 8px; height: 8px; border-radius: 4px;
+  background: rgba(255,255,255,0.2); cursor: pointer;
+  transition: var(--transition);
+  border: none;
+}
+
+.nav-dot.active {
+  width: 28px; background: var(--cyan);
+  box-shadow: 0 0 12px rgba(6,182,212,0.6);
+}
+
+.nav-arrows {
+  position: fixed; bottom: 20px; right: 32px;
+  display: flex; gap: 8px; z-index: 100;
+}
+
+.nav-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  color: var(--slate); cursor: pointer; font-size: 0.85rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+
+.nav-btn:hover { background: rgba(6,182,212,0.2); color: var(--cyan); border-color: rgba(6,182,212,0.3); }
+
+.slide-counter {
+  position: fixed; bottom: 28px; left: 32px;
+  font-size: 0.72rem; font-weight: 600; color: var(--slate);
+  letter-spacing: 1px; z-index: 100;
+}
+
+/* ── Shared components ── */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur) saturate(1.3);
+  -webkit-backdrop-filter: var(--glass-blur) saturate(1.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+  transition: var(--transition);
+}
+
+.glass-card-cyan {
+  border-color: rgba(6,182,212,0.2);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 30px rgba(6,182,212,0.07), inset 0 1px 0 rgba(6,182,212,0.08);
+}
+
+.glass-card-gold {
+  border-color: rgba(245,158,11,0.2);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 30px rgba(245,158,11,0.07), inset 0 1px 0 rgba(245,158,11,0.08);
+}
+
+.gradient-text-cyan {
+  background: linear-gradient(135deg, var(--cyan), #a78bfa);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.gradient-text-gold {
+  background: linear-gradient(135deg, var(--gold), #fbbf24);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.gradient-text-main {
+  background: linear-gradient(135deg, var(--cyan) 0%, var(--gold) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 14px; border-radius: 100px;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+}
+.tag-cyan { background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.35); color: var(--cyan); }
+.tag-gold { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.35); color: var(--gold); }
+.tag-green { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); color: var(--green); }
+.tag-purple { background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.35); color: var(--purple); }
+
+.accent-bar {
+  height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--cyan), var(--gold));
+}
+
+.content-wrap {
+  width: 100%; max-width: 1100px;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 1.5rem;
+}
+
+/* ═══════════════════════════════════
+   SLIDE 1 — CAPA
+   ═══════════════════════════════════ */
+#slide-1 { flex-direction: column; }
+
+.cover-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 18px; border-radius: 100px;
+  background: rgba(6,182,212,0.08);
+  border: 1px solid rgba(6,182,212,0.3);
+  font-size: 0.75rem; font-weight: 600; color: var(--cyan);
+  letter-spacing: 1px; text-transform: uppercase;
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%,100% { box-shadow: 0 0 10px rgba(6,182,212,0.2); }
+  50%      { box-shadow: 0 0 30px rgba(6,182,212,0.5); }
+}
+
+.cover-title {
+  font-size: clamp(2.8rem, 6vw, 5.5rem);
+  font-weight: 900; line-height: 1;
+  letter-spacing: -1px;
+}
+
+.cover-subtitle {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: var(--slate); font-weight: 400; max-width: 640px;
+}
+
+.prize-pill {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 14px 32px; border-radius: 100px;
+  background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05));
+  border: 1px solid rgba(245,158,11,0.4);
+  box-shadow: 0 0 40px rgba(245,158,11,0.15);
+}
+
+.prize-pill .amount {
+  font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+  font-weight: 900; color: var(--gold);
+}
+
+.cover-stats {
+  display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; margin-top: 0.5rem;
+}
+
+.cover-stat {
+  display: flex; flex-direction: column; align-items: center;
+}
+.cover-stat .val { font-size: 1.5rem; font-weight: 800; color: var(--light); }
+.cover-stat .lbl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--slate); }
+
+.version-badge {
+  position: fixed; top: 28px; right: 32px;
+  background: var(--glass-bg); backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border); border-radius: 100px;
+  padding: 6px 16px; font-size: 0.72rem; color: var(--slate); z-index: 90;
+}
+
+/* ═══════════════════════════════════
+   SLIDE 2 — FILOSOFIA
+   ═══════════════════════════════════ */
+.philosophy-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem;
+  width: 100%; max-width: 1100px;
+}
+
+.phil-card {
+  padding: 1.75rem 1.5rem; border-radius: var(--radius);
+  display: flex; flex-direction: column; align-items: center;
+  gap: 1rem; text-align: center; position: relative; overflow: hidden;
+}
+
+.phil-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.phil-card:nth-child(1)::before { background: linear-gradient(90deg, var(--cyan), transparent); }
+.phil-card:nth-child(2)::before { background: linear-gradient(90deg, var(--gold), transparent); }
+.phil-card:nth-child(3)::before { background: linear-gradient(90deg, var(--purple), transparent); }
+
+.phil-icon {
+  width: 64px; height: 64px; border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.phil-icon-cyan   { background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(6,182,212,0.05));  border: 1px solid rgba(6,182,212,0.3);  color: var(--cyan);   }
+.phil-icon-gold   { background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.05)); border: 1px solid rgba(245,158,11,0.3);  color: var(--gold);   }
+.phil-icon-purple { background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(139,92,246,0.05)); border: 1px solid rgba(139,92,246,0.3);  color: var(--purple); }
+
+.phil-title { font-size: 1rem; font-weight: 700; color: var(--light); }
+.phil-desc  { font-size: 0.8rem; color: var(--slate); line-height: 1.65; }
+
+/* ═══════════════════════════════════
+   SLIDE 3 — ANTENA / STACK
+   ═══════════════════════════════════ */
+.stack-grid {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem;
+  width: 100%; max-width: 1100px;
+}
+
+.stack-card {
+  padding: 1.5rem 1.25rem; border-radius: var(--radius);
+  display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+  text-align: center;
+  transform: translateY(0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.stack-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(6,182,212,0.1);
+}
+
+.stack-icon {
+  font-size: 2rem; filter: drop-shadow(0 0 8px currentColor);
+}
+
+.stack-name { font-size: 0.85rem; font-weight: 700; color: var(--light); }
+.stack-desc { font-size: 0.7rem; color: var(--slate); line-height: 1.5; }
+
+.stack-badge {
+  font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 2px 10px; border-radius: 100px;
+  background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--green);
+}
+
+/* ═══════════════════════════════════
+   SLIDE 4 — LÓGICA QUANT / IA
+   ═══════════════════════════════════ */
+.quant-layout {
+  display: grid; grid-template-columns: 1fr 1.6fr; gap: 2rem;
+  width: 100%; max-width: 1100px; align-items: start;
+}
+
+.quant-eq {
+  padding: 2rem; border-radius: var(--radius);
+  display: flex; flex-direction: column; gap: 1.25rem;
+}
+
+.eq-block {
+  padding: 1rem 1.25rem; border-radius: 12px;
+  background: rgba(6,182,212,0.05); border: 1px solid rgba(6,182,212,0.15);
+}
+
+.eq-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--cyan); font-weight: 700; margin-bottom: 6px; }
+
+.eq-formula {
+  font-size: 1.05rem; font-weight: 600; color: var(--light);
+  font-family: 'Courier New', monospace;
+}
+
+.quant-pillars {
+  display: flex; flex-direction: column; gap: 0.9rem;
+}
+
+.pillar {
+  display: flex; gap: 1rem; align-items: flex-start;
+  padding: 1rem 1.25rem; border-radius: 12px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: var(--transition);
+}
+.pillar:hover { border-color: rgba(6,182,212,0.2); background: rgba(6,182,212,0.04); }
+
+.pillar-num {
+  font-size: 1.1rem; font-weight: 900; min-width: 32px;
+  color: var(--cyan); opacity: 0.7;
+}
+
+.pillar-body { flex: 1; }
+.pillar-title { font-size: 0.88rem; font-weight: 700; color: var(--light); margin-bottom: 3px; }
+.pillar-desc  { font-size: 0.73rem; color: var(--slate); line-height: 1.55; }
+
+/* ═══════════════════════════════════
+   SLIDE 5 — POWER BI / DADOS
+   ═══════════════════════════════════ */
+.bi-layout {
+  display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem;
+  width: 100%; max-width: 1100px; align-items: start;
+}
+
+.heatmap-card {
+  padding: 1.5rem; border-radius: var(--radius);
+}
+
+.heatmap-title { font-size: 0.75rem; font-weight: 700; color: var(--slate); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 1rem; }
+
+.heatmap-grid {
+  display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px;
+}
+
+.hm-cell {
+  aspect-ratio: 1; border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.55rem; font-weight: 700; cursor: default;
+  transition: transform 0.2s ease;
+}
+.hm-cell:hover { transform: scale(1.3); z-index: 10; position: relative; }
+
+.hm-hot3   { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; box-shadow: 0 0 10px rgba(245,158,11,0.6); }
+.hm-hot2   { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 0 8px rgba(239,68,68,0.4); }
+.hm-hot1   { background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; }
+.hm-warm   { background: linear-gradient(135deg, #06b6d4, #0891b2); color: #fff; }
+.hm-cool   { background: rgba(30,41,59,0.8); color: #64748b; border: 1px solid rgba(255,255,255,0.06); }
+.hm-cold   { background: rgba(15,23,42,0.6); color: #334155; border: 1px solid rgba(255,255,255,0.04); }
+
+.bi-stats { display: flex; flex-direction: column; gap: 0.9rem; }
+
+.bi-stat-card {
+  padding: 1rem 1.25rem; border-radius: 14px;
+}
+
+.bi-stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--slate); font-weight: 600; }
+.bi-stat-val   { font-size: 1.5rem; font-weight: 800; margin: 4px 0; }
+.bi-stat-sub   { font-size: 0.7rem; color: var(--slate); }
+
+.bar-mini { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.05); overflow: hidden; margin-top: 8px; }
+.bar-fill { height: 100%; border-radius: 3px; }
+
+.freq-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.75rem;
+}
+.freq-ball {
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.72rem;
+}
+.freq-label { font-weight: 600; color: var(--light); min-width: 60px; }
+.freq-bar   { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+.freq-count { font-size: 0.68rem; color: var(--slate); min-width: 38px; text-align: right; }
+
+/* ═══════════════════════════════════
+   SLIDE 6 — ARQUITETURA / DEPLOY
+   ═══════════════════════════════════ */
+.arch-layout {
+  display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.75rem;
+  width: 100%; max-width: 1100px; align-items: center;
+}
+
+.arch-diagram {
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+}
+
+.arch-layer {
+  width: 100%; padding: 0.9rem 1.2rem; border-radius: 14px;
+  display: flex; align-items: center; gap: 12px;
+  position: relative;
+}
+
+.arch-arrow {
+  width: 2px; height: 28px; background: linear-gradient(180deg, var(--cyan), transparent);
+  margin: 2px auto;
+}
+
+.arch-icon { font-size: 1.3rem; width: 36px; text-align: center; }
+.arch-name { font-size: 0.85rem; font-weight: 700; color: var(--light); }
+.arch-tech { font-size: 0.68rem; color: var(--slate); }
+
+.perf-grid { display: flex; flex-direction: column; gap: 1rem; }
+
+.perf-card {
+  padding: 1.1rem 1.25rem; border-radius: 14px;
+  display: flex; align-items: center; gap: 1rem;
+}
+.perf-icon  { font-size: 1.4rem; flex-shrink: 0; }
+.perf-label { font-size: 0.8rem; font-weight: 700; color: var(--light); }
+.perf-val   { font-size: 0.7rem; color: var(--slate); }
+.perf-badge {
+  margin-left: auto;
+  font-size: 0.65rem; font-weight: 700; padding: 3px 10px; border-radius: 100px;
+  background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--green);
+}
+
+/* ═══════════════════════════════════
+   SLIDE 7 — GERADOR MESTRE
+   ═══════════════════════════════════ */
+.gen-layout {
+  display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.75rem;
+  width: 100%; max-width: 1100px; align-items: start;
+}
+
+.gen-mock {
+  padding: 1.75rem; border-radius: var(--radius);
+  display: flex; flex-direction: column; gap: 1.1rem;
+}
+
+.gen-header { display: flex; align-items: center; gap: 8px; }
+.gen-title-text { font-size: 0.8rem; font-weight: 800; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; }
+
+.gen-slider-row {
+  display: flex; align-items: center; gap: 10px; font-size: 0.75rem; color: var(--slate);
+}
+.gen-track {
+  flex: 1; height: 4px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--gold) 70%, rgba(255,255,255,0.1) 70%);
+}
+
+.gen-dezenas {
+  display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+}
+
+.gen-ball {
+  width: 42px; height: 42px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.85rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  animation: floatBall 3s ease-in-out infinite;
+}
+.gen-ball:nth-child(1) { animation-delay: 0s;    background: linear-gradient(145deg,#0e7490,#0891b2); border: 1.5px solid #06b6d4; color: #fff; }
+.gen-ball:nth-child(2) { animation-delay: 0.3s;  background: linear-gradient(145deg,#92400e,#b45309); border: 1.5px solid #f59e0b; color: #fff; }
+.gen-ball:nth-child(3) { animation-delay: 0.6s;  background: linear-gradient(145deg,#1e3a5f,#1d4ed8); border: 1.5px solid #3b82f6; color: #fff; }
+.gen-ball:nth-child(4) { animation-delay: 0.9s;  background: linear-gradient(145deg,#6d28d9,#7c3aed); border: 1.5px solid #8b5cf6; color: #fff; }
+.gen-ball:nth-child(5) { animation-delay: 1.2s;  background: linear-gradient(145deg,#065f46,#059669); border: 1.5px solid #10b981; color: #fff; }
+.gen-ball:nth-child(6) { animation-delay: 1.5s;  background: linear-gradient(145deg,#7c1d10,#b91c1c); border: 1.5px solid #ef4444; color: #fff; }
+
+@keyframes floatBall {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+
+.sih-gauge-wrap { text-align: center; }
+
+.sih-gauge-outer {
+  width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 4px;
+  background: conic-gradient(var(--gold) 295deg, rgba(255,255,255,0.07) 0deg);
+  display: flex; align-items: center; justify-content: center;
+}
+.sih-gauge-inner {
+  width: 60px; height: 60px; border-radius: 50%;
+  background: #0a0f1a; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.sih-val  { font-size: 1.25rem; font-weight: 900; color: var(--gold); line-height: 1; }
+.sih-lbl  { font-size: 0.5rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.gen-info { display: flex; flex-direction: column; gap: 0.9rem; }
+
+.gen-feature {
+  padding: 1rem 1.25rem; border-radius: 14px;
+  display: flex; gap: 1rem; align-items: flex-start;
+}
+
+.gen-feat-icon { font-size: 1.2rem; color: var(--cyan); flex-shrink: 0; margin-top: 2px; }
+.gen-feat-title { font-size: 0.88rem; font-weight: 700; color: var(--light); margin-bottom: 3px; }
+.gen-feat-desc  { font-size: 0.73rem; color: var(--slate); line-height: 1.55; }
+
+/* ═══════════════════════════════════
+   SLIDE 8 — GRANDE PRÊMIO (CINEMATIC)
+   ═══════════════════════════════════ */
+#slide-8 {
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(245,158,11,0.08), transparent 70%);
+}
+
+.prize-slide { display: flex; flex-direction: column; align-items: center; gap: 2rem; }
+
+.prize-title {
+  font-size: clamp(1rem,2vw,1.5rem);
+  text-transform: uppercase; letter-spacing: 3px; color: var(--slate); font-weight: 600;
+}
+
+.prize-amount {
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 900; line-height: 1;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 40%, #d97706 70%, #fbbf24 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: goldShimmer 3s linear infinite;
+  filter: drop-shadow(0 0 30px rgba(245,158,11,0.4));
+}
+
+@keyframes goldShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.prize-ring {
+  width: 220px; height: 220px; border-radius: 50%; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.prize-ring::before {
+  content: ''; position: absolute; inset: -6px; border-radius: 50%;
+  background: conic-gradient(var(--gold), var(--gold2), #fbbf24, var(--gold));
+  animation: rotateBorder 4s linear infinite;
+  z-index: -1;
+}
+
+.prize-ring::after {
+  content: ''; position: absolute; inset: -2px; border-radius: 50%;
+  background: var(--void); z-index: -1;
+}
+
+@keyframes rotateBorder {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.prize-inner {
+  width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,158,11,0.12) 0%, rgba(6,11,20,0.95) 70%);
+  border: 1px solid rgba(245,158,11,0.25);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  backdrop-filter: blur(20px);
+}
+
+.prize-inner .p-icon { font-size: 2.5rem; color: var(--gold); }
+.prize-inner .p-label { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--slate); }
+.prize-inner .p-val { font-size: 1.1rem; font-weight: 900; color: var(--gold); }
+
+.prize-grid {
+  display: flex; gap: 1.25rem; flex-wrap: wrap; justify-content: center;
+}
+
+.prize-kpi {
+  text-align: center; padding: 1rem 1.5rem; border-radius: 14px;
+  min-width: 160px;
+}
+
+.prize-kpi .k-val { font-size: 1.4rem; font-weight: 900; }
+.prize-kpi .k-lbl { font-size: 0.68rem; color: var(--slate); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+.prize-axiom {
+  font-size: 0.82rem; color: var(--slate);
+  max-width: 640px; line-height: 1.7; text-align: center;
+  padding: 1.1rem 1.5rem; border-radius: 12px;
+  background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06);
+}
+
+.prize-axiom strong { color: var(--cyan); }
+
+/* ── Slide generic header ── */
+.slide-header {
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+.slide-eyebrow {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--slate);
+}
+.slide-h2 {
+  font-size: clamp(1.5rem, 3vw, 2.5rem); font-weight: 800; line-height: 1.1;
+}
+
+/* ── Misc ── */
+.divider {
+  width: 60px; height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--cyan), var(--gold));
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .philosophy-grid { grid-template-columns: 1fr 1fr; }
+  .stack-grid { grid-template-columns: repeat(2,1fr); }
+  .quant-layout, .bi-layout, .arch-layout, .gen-layout { grid-template-columns: 1fr; }
+  .quant-layout > :first-child, .bi-layout > :first-child,
+  .arch-layout > :first-child { display: none; }
+}
+
+@media (max-width: 600px) {
+  .philosophy-grid { grid-template-columns: 1fr; }
+  .stack-grid { grid-template-columns: repeat(2,1fr); }
+  .cover-title { font-size: 2.4rem; }
+  .prize-amount { font-size: 3.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Canvas partículas ─────────────────────────────────────── -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- ── Badge versão ─────────────────────────────────────────── -->
+<div class="version-badge"><i class="fas fa-code-branch"></i> v3.0 — Update Estético &amp; IA Quant</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     DECK DE SLIDES
+     ══════════════════════════════════════════════════════════════ -->
+<div class="deck" id="deck">
+
+  <!-- ─── SLIDE 1 — CAPA ───────────────────────────────────── -->
+  <section class="slide active" id="slide-1" data-slide="1">
+    <div class="content-wrap">
+      <div class="cover-badge">
+        <i class="fas fa-bolt"></i> System Update 3.0 — Mega-Sena HFT Analytics
+      </div>
+
+      <h1 class="cover-title">
+        <span class="gradient-text-main">MegaMind</span><br>
+        <span style="color:var(--light)">Quant</span>
+        <span class="gradient-text-gold"> 3.0</span>
+      </h1>
+
+      <div class="accent-bar" style="width:80px; margin:0 auto;"></div>
+
+      <p class="cover-subtitle">
+        Da análise estatística clássica à <strong style="color:var(--cyan)">Inteligência Quant de Alta Frequência</strong>.
+        A evolução visual e algorítmica do maior sistema privado de análise da Mega-Sena.
+      </p>
+
+      <div class="prize-pill">
+        <i class="fas fa-trophy" style="color:var(--gold); font-size:1.5rem;"></i>
+        <div>
+          <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:1px;color:var(--slate);">Prêmio acumulado</div>
+          <div class="amount">R$ 115.000.000,00</div>
+        </div>
+      </div>
+
+      <div class="cover-stats">
+        <div class="cover-stat">
+          <span class="val gradient-text-cyan">1 : 50M</span>
+          <span class="lbl">Probabilidade Sena</span>
+        </div>
+        <div class="cover-stat">
+          <span class="val" style="color:var(--gold);">~183</span>
+          <span class="lbl">Soma Convergente</span>
+        </div>
+        <div class="cover-stat">
+          <span class="val gradient-text-gold">50.000+</span>
+          <span class="lbl">Candidatos Monte Carlo</span>
+        </div>
+        <div class="cover-stat">
+          <span class="val" style="color:var(--green);">10.97%</span>
+          <span class="lbl">Pass-Rate de Filtros</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 2 — FILOSOFIA ─────────────────────────────── -->
+  <section class="slide" id="slide-2" data-slide="2">
+    <div class="content-wrap" style="max-width:1100px">
+      <div class="slide-header">
+        <span class="slide-eyebrow"><i class="fas fa-eye"></i> A Filosofia</span>
+        <h2 class="slide-h2">
+          Por que <span class="gradient-text-cyan">visualizar</span> importa mais<br>
+          do que <span class="gradient-text-gold">prever</span>
+        </h2>
+        <div class="divider"></div>
+      </div>
+
+      <p style="color:var(--slate);font-size:0.9rem;max-width:620px;line-height:1.7;">
+        O sorteio é matematicamente aleatório. Nenhuma IA prevê bolas.
+        Nosso diferencial é <strong style="color:var(--cyan)">maximizar o Valor Esperado (EV)</strong>
+        tornando cada aposta <em>estatisticamente solitária</em> — como um Hedge Fund minimizando correlação de portfólio.
+      </p>
+
+      <div class="philosophy-grid">
+        <div class="glass-card glass-card-cyan phil-card">
+          <div class="phil-icon phil-icon-cyan"><i class="fas fa-cube"></i></div>
+          <div class="phil-title">3D Imersivo</div>
+          <div class="phil-desc">Interface com profundidade z-axis, sombras suaves e parallax para revelar padrões multi-dimensionais nos sorteios históricos.</div>
+          <span class="tag tag-cyan"><i class="fas fa-layer-group"></i> Glassmorphism</span>
+        </div>
+        <div class="glass-card glass-card-gold phil-card">
+          <div class="phil-icon phil-icon-gold"><i class="fas fa-chart-pie"></i></div>
+          <div class="phil-title">Power BI Executivo</div>
+          <div class="phil-desc">Dashboards densos com mapas de calor, histogramas de frequência e análise Contrarian para tomada de decisão como um trader quantitativo.</div>
+          <span class="tag tag-gold"><i class="fas fa-database"></i> Data-Dense</span>
+        </div>
+        <div class="glass-card phil-card" style="border-color:rgba(139,92,246,0.2);">
+          <div class="phil-icon phil-icon-purple"><i class="fas fa-brain"></i></div>
+          <div class="phil-title">IA Bayesiana</div>
+          <div class="phil-desc">Filtros comportamentais (Behavioral Bias) e Score de Improbabilidade Humana (SIH) guiam a seleção — não a superstição, mas a Teoria dos Jogos.</div>
+          <span class="tag tag-purple"><i class="fas fa-robot"></i> Quant Engine</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 3 — A ANTENA / STACK ──────────────────────── -->
+  <section class="slide" id="slide-3" data-slide="3">
+    <div class="content-wrap" style="max-width:1100px">
+      <div class="slide-header">
+        <span class="slide-eyebrow"><i class="fas fa-satellite-dish"></i> A Antena — O que Mantivemos</span>
+        <h2 class="slide-h2">
+          Stack técnico <span class="gradient-text-cyan">inabalável</span>,<br>
+          estética <span class="gradient-text-gold">evoluída</span>
+        </h2>
+        <div class="divider"></div>
+      </div>
+
+      <div class="stack-grid">
+        <div class="glass-card glass-card-cyan stack-card">
+          <i class="fab fa-java stack-icon" style="color:#e76f00;"></i>
+          <div class="stack-name">Java 21 + Spring Boot</div>
+          <div class="stack-desc">Motor de análise estatística de alta performance com JPA e APIs REST para processamento em tempo real.</div>
+          <span class="stack-badge">Backend Core</span>
+        </div>
+        <div class="glass-card stack-card" style="border-color:rgba(99,102,241,0.2);">
+          <i class="fab fa-python stack-icon" style="color:#3b82f6;"></i>
+          <div class="stack-name">Python + NumPy</div>
+          <div class="stack-desc">Motor Monte Carlo vetorizado gerando 50.000+ candidatos por execução, com filtros bayesianos e cálculo de SIH.</div>
+          <span class="stack-badge">Quant Engine</span>
+        </div>
+        <div class="glass-card stack-card" style="border-color:rgba(16,185,129,0.2);">
+          <svg width="32" height="32" viewBox="0 0 76 65" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M37.5 0L75 65H0L37.5 0Z" fill="white"/>
+          </svg>
+          <div class="stack-name">Vercel + CI/CD</div>
+          <div class="stack-desc">Deploy automático com zero downtime. Edge Functions para APIs de alto tráfego com latência &lt; 50ms.</div>
+          <span class="stack-badge">Infra &amp; Deploy</span>
+        </div>
+        <div class="glass-card glass-card-gold stack-card">
+          <i class="fas fa-database stack-icon" style="color:#06b6d4;"></i>
+          <div class="stack-name">Neon Postgres</div>
+          <div class="stack-desc">Banco serverless com 3.000+ sorteios históricos. Consultas otimizadas com índices para análise de tendências em tempo real.</div>
+          <span class="stack-badge">Data Layer</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center;margin-top:0.5rem;">
+        <span class="tag tag-green"><i class="fas fa-check-circle"></i> APIs Caixa Econômica</span>
+        <span class="tag tag-cyan"><i class="fas fa-check-circle"></i> Flask Auth MFA</span>
+        <span class="tag tag-gold"><i class="fas fa-check-circle"></i> Análise de Entropia</span>
+        <span class="tag tag-purple"><i class="fas fa-check-circle"></i> Backtesting Automático</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 4 — LÓGICA QUANT / IA ─────────────────────── -->
+  <section class="slide" id="slide-4" data-slide="4">
+    <div class="content-wrap" style="max-width:1100px; text-align:left; align-items:flex-start;">
+      <div class="slide-header" style="align-items:flex-start;">
+        <span class="slide-eyebrow"><i class="fas fa-robot"></i> A Nova Lógica Quant</span>
+        <h2 class="slide-h2">
+          HFT aplicado à <span class="gradient-text-gold">loteria</span><br>
+          — <span class="gradient-text-cyan">Teoria dos Jogos como guia</span>
+        </h2>
+        <div class="divider" style="margin:0;"></div>
+      </div>
+
+      <div class="quant-layout">
+        <div class="glass-card glass-card-cyan quant-eq">
+          <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--cyan);font-weight:700;">Axioma Fundamental</div>
+
+          <div class="eq-block">
+            <div class="eq-label">Probabilidade</div>
+            <div class="eq-formula">
+              <math xmlns="http://www.w3.org/1998/Math/MathML">
+                <mi>p</mi><mo>=</mo>
+                <mfrac><mn>1</mn><mn>50.063.860</mn></mfrac>
+                <mo>≈</mo><msup><mn>2</mn><mrow><mo>-</mo><mn>25,2</mn></mrow></msup>
+              </math>
+            </div>
+          </div>
+
+          <div class="eq-block">
+            <div class="eq-label">Objetivo Real — Maximizar EV</div>
+            <div class="eq-formula">
+              <math xmlns="http://www.w3.org/1998/Math/MathML">
+                <mi>EV</mi><mo>=</mo>
+                <mfrac>
+                  <mtext>Prêmio</mtext>
+                  <msub><mi>N</mi><mtext>ganhadores</mtext></msub>
+                </mfrac>
+                <mo>→</mo><mi>MAX</mi>
+              </math>
+            </div>
+          </div>
+
+          <div class="eq-block">
+            <div class="eq-label">Score SIH</div>
+            <div class="eq-formula">
+              <math xmlns="http://www.w3.org/1998/Math/MathML">
+                <mi>SIH</mi><mo>=</mo>
+                <munderover>
+                  <mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow>
+                  <mn>5</mn>
+                </munderover>
+                <msub><mi>w</mi><mi>i</mi></msub>
+                <mo>·</mo>
+                <msub><mi>F</mi><mi>i</mi></msub>
+              </math>
+            </div>
+          </div>
+
+          <div style="font-size:0.7rem;color:var(--slate);line-height:1.6;">
+            Onde <strong style="color:var(--cyan)">F<sub>i</sub></strong> = filtros (Calendário 30pt · Geometria 25pt · Soma 20pt · Dispersão 15pt · Entropia 10pt)
+          </div>
+        </div>
+
+        <div class="quant-pillars">
+          <div class="pillar glass-card">
+            <div class="pillar-num">01</div>
+            <div class="pillar-body">
+              <div class="pillar-title"><i class="fas fa-calendar-xmark" style="color:var(--gold);margin-right:6px;"></i>Behavioral Bias Filter</div>
+              <div class="pillar-desc">Rejeita combos com ≥ 4 números ≤ 31 (viés de aniversário), padrões geométricos no volante 6×10 e progressões aritméticas óbvias — os erros cognitivos que 90% dos apostadores cometem.</div>
+            </div>
+          </div>
+          <div class="pillar glass-card">
+            <div class="pillar-num">02</div>
+            <div class="pillar-body">
+              <div class="pillar-title"><i class="fas fa-chart-line" style="color:var(--cyan);margin-right:6px;"></i>Contrarian Trading</div>
+              <div class="pillar-desc">Mapeia os top-10 "quentes" e top-10 "atrasadas". Rejeita combos onde todos os 6 estão no mesmo cluster — a Falácia do Apostador codificada como stop-loss.</div>
+            </div>
+          </div>
+          <div class="pillar glass-card">
+            <div class="pillar-num">03</div>
+            <div class="pillar-body">
+              <div class="pillar-title"><i class="fas fa-microchip" style="color:var(--purple);margin-right:6px;"></i>Monte Carlo Elitista</div>
+              <div class="pillar-desc">50.000 candidatos aleatórios por batch (NumPy vetorizado). Apenas ~11% sobrevivem todos os filtros. Os K melhores por SIH são selecionados com critério de diversidade mínima (≤ 4 dezenas em comum).</div>
+            </div>
+          </div>
+          <div class="pillar glass-card">
+            <div class="pillar-num">04</div>
+            <div class="pillar-body">
+              <div class="pillar-title"><i class="fas fa-sigma" style="color:var(--green);margin-right:6px;"></i>Otimização de Soma + Entropia</div>
+              <div class="pillar-desc">Foco em somas entre 170–230 (cauda direita da distribuição, onde menos apostadores estão). Primos altos e pares altos recebem bônus de entropia — dezenas estatisticamente "esquecidas" pelo apostador médio.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 5 — POWER BI / DADOS ──────────────────────── -->
+  <section class="slide" id="slide-5" data-slide="5">
+    <div class="content-wrap" style="max-width:1100px; text-align:left; align-items:flex-start;">
+      <div class="slide-header" style="align-items:flex-start;">
+        <span class="slide-eyebrow"><i class="fas fa-fire"></i> Visualização de Dados</span>
+        <h2 class="slide-h2">
+          Mapa de Calor <span class="gradient-text-gold">Executivo</span>
+          — <span class="gradient-text-cyan">Frequência 3D</span>
+        </h2>
+        <div class="divider" style="margin:0;"></div>
+      </div>
+
+      <div class="bi-layout">
+        <div class="glass-card glass-card-cyan heatmap-card">
+          <div class="heatmap-title"><i class="fas fa-th"></i> Volante Mega-Sena — Mapa de Frequência (3.000 sorteios)</div>
+          <div class="heatmap-grid" id="heatmap"></div>
+          <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;">
+            <span style="font-size:0.62rem;color:var(--slate);display:flex;align-items:center;gap:4px;"><span style="width:12px;height:12px;border-radius:3px;background:var(--gold);display:inline-block;"></span> Top 3 Histórico</span>
+            <span style="font-size:0.62rem;color:var(--slate);display:flex;align-items:center;gap:4px;"><span style="width:12px;height:12px;border-radius:3px;background:#ef4444;display:inline-block;"></span> Muito quente</span>
+            <span style="font-size:0.62rem;color:var(--slate);display:flex;align-items:center;gap:4px;"><span style="width:12px;height:12px;border-radius:3px;background:var(--cyan);display:inline-block;"></span> Quente</span>
+            <span style="font-size:0.62rem;color:var(--slate);display:flex;align-items:center;gap:4px;"><span style="width:12px;height:12px;border-radius:3px;background:rgba(30,41,59,0.8);border:1px solid rgba(255,255,255,0.1);display:inline-block;"></span> Fria / Atrasada</span>
+          </div>
+        </div>
+
+        <div class="bi-stats">
+          <div class="glass-card glass-card-gold bi-stat-card">
+            <div class="bi-stat-label"><i class="fas fa-chart-bar"></i> Top Frequência — Bolas</div>
+            <div style="margin-top:10px;">
+              <div class="freq-row">
+                <div class="freq-ball" style="background:linear-gradient(145deg,#92400e,#b45309);border:1.5px solid var(--gold);">10</div>
+                <span class="freq-label">Bola 10</span>
+                <div class="freq-bar"><div class="bar-fill" style="width:95%;background:var(--gold);"></div></div>
+                <span class="freq-count">~295x</span>
+              </div>
+              <div class="freq-row">
+                <div class="freq-ball" style="background:linear-gradient(145deg,#7c1d10,#b91c1c);border:1.5px solid #ef4444;">53</div>
+                <span class="freq-label">Bola 53</span>
+                <div class="freq-bar"><div class="bar-fill" style="width:88%;background:#ef4444;"></div></div>
+                <span class="freq-count">~288x</span>
+              </div>
+              <div class="freq-row">
+                <div class="freq-ball" style="background:linear-gradient(145deg,#0e7490,#0891b2);border:1.5px solid var(--cyan);">05</div>
+                <span class="freq-label">Bola 05</span>
+                <div class="freq-bar"><div class="bar-fill" style="width:82%;background:var(--cyan);"></div></div>
+                <span class="freq-count">~282x</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card bi-stat-card">
+            <div class="bi-stat-label">Soma Média Histórica</div>
+            <div class="bi-stat-val gradient-text-cyan">183,4</div>
+            <div class="bi-stat-sub">Convergência teórica: (1+60)/2 × 6 = 183</div>
+            <div class="bar-mini"><div class="bar-fill" style="width:78%;background:linear-gradient(90deg,var(--cyan),var(--gold));"></div></div>
+          </div>
+
+          <div class="glass-card bi-stat-card">
+            <div class="bi-stat-label">Zona Alvo SIH (soma 170–230)</div>
+            <div class="bi-stat-val gradient-text-gold">+1,4σ</div>
+            <div class="bi-stat-sub">Desvio mediano das apostas geradas vs histórico humano</div>
+            <div class="bar-mini"><div class="bar-fill" style="width:65%;background:linear-gradient(90deg,var(--gold),#fbbf24);"></div></div>
+          </div>
+
+          <div class="glass-card bi-stat-card" style="border-color:rgba(16,185,129,0.2);">
+            <div class="bi-stat-label">Pass-Rate Monte Carlo</div>
+            <div class="bi-stat-val" style="color:var(--green);">~10,97%</div>
+            <div class="bi-stat-sub">De 50.000 candidatos → ~5.325 sobreviventes aos filtros</div>
+            <div class="bar-mini"><div class="bar-fill" style="width:11%;background:var(--green);"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 6 — ARQUITETURA ────────────────────────────── -->
+  <section class="slide" id="slide-6" data-slide="6">
+    <div class="content-wrap" style="max-width:1100px; text-align:left; align-items:flex-start;">
+      <div class="slide-header" style="align-items:flex-start;">
+        <span class="slide-eyebrow"><i class="fas fa-server"></i> Performance &amp; Deploy</span>
+        <h2 class="slide-h2">
+          Arquitetura <span class="gradient-text-cyan">Edge-Native</span><br>
+          para <span class="gradient-text-gold">Alta Frequência</span>
+        </h2>
+        <div class="divider" style="margin:0;"></div>
+      </div>
+
+      <div class="arch-layout">
+        <div class="arch-diagram">
+          <div class="glass-card glass-card-cyan arch-layer">
+            <div class="arch-icon"><i class="fas fa-users" style="color:var(--cyan);"></i></div>
+            <div><div class="arch-name">Usuário / Browser</div><div class="arch-tech">HTTPS · FlightKit Auth · MFA</div></div>
+          </div>
+          <div class="arch-arrow"></div>
+          <div class="glass-card arch-layer" style="border-color:rgba(139,92,246,0.2);">
+            <div class="arch-icon"><svg width="22" height="22" viewBox="0 0 76 65" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M37.5 0L75 65H0L37.5 0Z" fill="white"/></svg></div>
+            <div><div class="arch-name">Vercel Edge Network</div><div class="arch-tech">CDN Global · 50ms · CI/CD Auto-Deploy</div></div>
+          </div>
+          <div class="arch-arrow"></div>
+          <div class="glass-card arch-layer" style="border-color:rgba(245,158,11,0.2);">
+            <div class="arch-icon"><i class="fab fa-python" style="color:#3b82f6;"></i></div>
+            <div><div class="arch-name">Flask + Quant Engine</div><div class="arch-tech">Python · NumPy · Monte Carlo · SIH</div></div>
+          </div>
+          <div class="arch-arrow"></div>
+          <div class="glass-card arch-layer" style="border-color:rgba(16,185,129,0.2);">
+            <div class="arch-icon"><i class="fab fa-java" style="color:#e76f00;"></i></div>
+            <div><div class="arch-name">Java Spring Boot API</div><div class="arch-tech">REST · JPA · Análises Estatísticas</div></div>
+          </div>
+          <div class="arch-arrow"></div>
+          <div class="glass-card arch-layer">
+            <div class="arch-icon"><i class="fas fa-database" style="color:var(--cyan);"></i></div>
+            <div><div class="arch-name">Neon Serverless Postgres</div><div class="arch-tech">3.000+ sorteios · Pooling · Branching</div></div>
+          </div>
+        </div>
+
+        <div class="perf-grid">
+          <div class="glass-card glass-card-cyan perf-card">
+            <div class="perf-icon"><i class="fas fa-bolt" style="color:var(--gold);"></i></div>
+            <div>
+              <div class="perf-label">Geração Monte Carlo</div>
+              <div class="perf-val">50.000 candidatos · NumPy vetorizado</div>
+            </div>
+            <span class="perf-badge">&lt; 2s</span>
+          </div>
+          <div class="glass-card perf-card" style="border-color:rgba(139,92,246,0.2);">
+            <div class="perf-icon"><i class="fas fa-deploy" style="color:var(--purple);"></i></div>
+            <div>
+              <div class="perf-label">CI/CD — Push to Deploy</div>
+              <div class="perf-val">Git push → Vercel build → Live</div>
+            </div>
+            <span class="perf-badge">Zero downtime</span>
+          </div>
+          <div class="glass-card perf-card" style="border-color:rgba(245,158,11,0.2);">
+            <div class="perf-icon"><i class="fas fa-shield-halved" style="color:var(--gold);"></i></div>
+            <div>
+              <div class="perf-label">Autenticação MFA</div>
+              <div class="perf-val">Flask-Login + TOTP · Portal privado</div>
+            </div>
+            <span class="perf-badge">Seguro</span>
+          </div>
+          <div class="glass-card perf-card" style="border-color:rgba(16,185,129,0.2);">
+            <div class="perf-icon"><i class="fas fa-sync" style="color:var(--green);"></i></div>
+            <div>
+              <div class="perf-label">Dados em Tempo Real</div>
+              <div class="perf-val">API Caixa → Cache inteligente por sorteio</div>
+            </div>
+            <span class="perf-badge">Auto-sync</span>
+          </div>
+          <div class="glass-card perf-card">
+            <div class="perf-icon"><i class="fas fa-chart-column" style="color:var(--cyan);"></i></div>
+            <div>
+              <div class="perf-label">Backtesting</div>
+              <div class="perf-val">10 últimos sorteios · Sharpe Ratio · Drawdown</div>
+            </div>
+            <span class="perf-badge">Automático</span>
+          </div>
+          <div class="glass-card perf-card" style="border-color:rgba(6,182,212,0.15);">
+            <div class="perf-icon"><i class="fas fa-memory" style="color:var(--cyan);"></i></div>
+            <div>
+              <div class="perf-label">Cache Global</div>
+              <div class="perf-val">Engine lazy-init · Reutilização entre rotas</div>
+            </div>
+            <span class="perf-badge">In-memory</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 7 — GERADOR MESTRE ────────────────────────── -->
+  <section class="slide" id="slide-7" data-slide="7">
+    <div class="content-wrap" style="max-width:1100px; text-align:left; align-items:flex-start;">
+      <div class="slide-header" style="align-items:flex-start;">
+        <span class="slide-eyebrow"><i class="fas fa-wand-magic-sparkles"></i> Gerador Mestre</span>
+        <h2 class="slide-h2">
+          <span class="gradient-text-gold">Quant-Master</span> Engine
+          — apostas <span class="gradient-text-cyan">estatisticamente solitárias</span>
+        </h2>
+        <div class="divider" style="margin:0;"></div>
+      </div>
+
+      <div class="gen-layout">
+        <!-- Mock da UI -->
+        <div class="glass-card glass-card-gold gen-mock">
+          <div class="gen-header">
+            <i class="fas fa-bolt" style="color:var(--gold);"></i>
+            <span class="gen-title-text">Quant-Master</span>
+            <span class="tag tag-gold" style="margin-left:auto;font-size:0.6rem;">SIH Score</span>
+          </div>
+
+          <div style="font-size:0.65rem;color:var(--slate);text-transform:uppercase;letter-spacing:0.8px;">Candidatos Monte Carlo</div>
+          <div class="gen-slider-row">
+            <i class="fas fa-sliders" style="color:var(--gold);"></i>
+            <div class="gen-track"></div>
+            <strong style="color:var(--gold);font-size:0.8rem;">50.000</strong>
+          </div>
+
+          <div style="font-size:0.65rem;color:var(--slate);text-transform:uppercase;letter-spacing:0.8px;">Jogo Gerado — Elite #1</div>
+          <div class="gen-dezenas">
+            <div class="gen-ball">13</div>
+            <div class="gen-ball">27</div>
+            <div class="gen-ball">43</div>
+            <div class="gen-ball">45</div>
+            <div class="gen-ball">54</div>
+            <div class="gen-ball">58</div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.25rem;">
+            <div>
+              <div style="font-size:0.65rem;color:var(--slate);">Soma: <strong style="color:var(--cyan);">240</strong> · 4 quadrantes · 3 alta-entropia</div>
+              <div style="font-size:0.6rem;color:var(--slate);margin-top:2px;">Filtros: ✅ Calendário · ✅ Geometria · ✅ Progressão · ✅ Contrarian</div>
+            </div>
+            <div class="sih-gauge-wrap">
+              <div class="sih-gauge-outer">
+                <div class="sih-gauge-inner">
+                  <div class="sih-val">81.7</div>
+                  <div class="sih-lbl">SIH</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);border-left:3px solid var(--gold);border-radius:8px;padding:10px 14px;font-size:0.65rem;color:var(--slate);font-family:monospace;line-height:1.6;">
+            <span style="color:var(--gold);font-weight:700;">QUANT&gt; </span>Soma 240 (+1.4dp). Dispersao: [Q1:1, Q2:1, Q3:2, Q4:2]. 2 nums &lt;=31. Alta entropia: 43, 54, 58. SIH 81.7/100 — EV maximizado.
+          </div>
+        </div>
+
+        <!-- Features -->
+        <div class="gen-info">
+          <div class="glass-card gen-feature">
+            <div class="gen-feat-icon"><i class="fas fa-filter"></i></div>
+            <div>
+              <div class="gen-feat-title">4 Stop-Loss de Viés Comportamental</div>
+              <div class="gen-feat-desc">Calendário (≥4 nums ≤31 → rejeita), Geometria (volante 6×10), Progressão (PA passo 5/10) e Contrarian (clusters de manada). Apenas ~11% passam.</div>
+            </div>
+          </div>
+          <div class="glass-card gen-feature" style="border-color:rgba(245,158,11,0.15);">
+            <div class="gen-feat-icon" style="color:var(--gold);"><i class="fas fa-gauge-high"></i></div>
+            <div>
+              <div class="gen-feat-title">Score SIH em 5 Dimensões (0–100)</div>
+              <div class="gen-feat-desc">Calendário (30pts) + Geometria (25pts) + Soma cauda direita (20pts) + Dispersão de quadrantes (15pts) + Entropia de primos/pares altos (10pts).</div>
+            </div>
+          </div>
+          <div class="glass-card gen-feature" style="border-color:rgba(139,92,246,0.15);">
+            <div class="gen-feat-icon" style="color:var(--purple);"><i class="fas fa-shuffle"></i></div>
+            <div>
+              <div class="gen-feat-title">Diversidade Garantida</div>
+              <div class="gen-feat-desc">Algoritmo de seleção elimina combos com ≥5 dezenas em comum entre si. Portfólio de jogos com correlação mínima — como diversificação de ativos.</div>
+            </div>
+          </div>
+          <div class="glass-card gen-feature" style="border-color:rgba(16,185,129,0.15);">
+            <div class="gen-feat-icon" style="color:var(--green);"><i class="fas fa-file-lines"></i></div>
+            <div>
+              <div class="gen-feat-title">Justificativa Quantitativa por Jogo</div>
+              <div class="gen-feat-desc">Cada aposta gerada inclui um "boletim terminal" explicando: sigma da soma, dispersão por quadrante, dezenas de alta entropia presentes e SIH final.</div>
+            </div>
+          </div>
+          <div class="glass-card gen-feature">
+            <div class="gen-feat-icon" style="color:var(--cyan);"><i class="fas fa-tachometer-alt"></i></div>
+            <div>
+              <div class="gen-feat-title">Interface HFT — Tilt 3D Glassmorphism</div>
+              <div class="gen-feat-desc">Cards com efeito de inclinamento 3D (perspectiva 900px) e reflexo de luz seguindo o cursor. Gauge circular animado para SIH. Chips por quadrante coloridos.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 8 — GRANDE PRÊMIO ─────────────────────────── -->
+  <section class="slide" id="slide-8" data-slide="8">
+    <div class="prize-slide">
+      <div class="prize-title"><i class="fas fa-crown" style="color:var(--gold);margin-right:8px;"></i>Mega-Sena da Virada Acumulada</div>
+
+      <div class="prize-amount">R$ 115.000.000</div>
+
+      <div class="prize-ring">
+        <div class="prize-inner">
+          <div class="p-icon"><i class="fas fa-star"></i></div>
+          <div class="p-label">Prêmio Solitário</div>
+          <div class="p-val">100% → 1 ganhador</div>
+        </div>
+      </div>
+
+      <div class="prize-grid">
+        <div class="glass-card glass-card-gold prize-kpi">
+          <div class="k-val gradient-text-gold">1 ÷ 50M</div>
+          <div class="k-lbl">Probabilidade — Constante</div>
+        </div>
+        <div class="glass-card glass-card-cyan prize-kpi">
+          <div class="k-val gradient-text-cyan">SIH &gt; 80</div>
+          <div class="k-lbl">Score Mínimo de Elite</div>
+        </div>
+        <div class="glass-card prize-kpi" style="border-color:rgba(16,185,129,0.2);">
+          <div class="k-val" style="color:var(--green);">&lt; 11%</div>
+          <div class="k-lbl">Pass-Rate dos Filtros</div>
+        </div>
+        <div class="glass-card prize-kpi" style="border-color:rgba(139,92,246,0.2);">
+          <div class="k-val" style="color:var(--purple);">3.000+</div>
+          <div class="k-lbl">Sorteios Históricos</div>
+        </div>
+      </div>
+
+      <div class="prize-axiom">
+        <strong>Axioma Fundamental:</strong> a probabilidade de qualquer combinação é sempre
+        <strong>p = 1 / 50.063.860</strong> — imutável. Nosso objetivo não é vencer o acaso,
+        mas <strong>garantir que, se vencermos, o prêmio seja solitário</strong>.
+        Apostamos onde a manada não aposta. Vencemos onde ninguém mais está.
+      </div>
+
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center;">
+        <span class="tag tag-gold"><i class="fas fa-trophy"></i> MegaMind Quant 3.0</span>
+        <span class="tag tag-cyan"><i class="fas fa-code"></i> Python + Java + Vercel</span>
+        <span class="tag tag-green"><i class="fas fa-shield-halved"></i> Portal Privado MFA</span>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /deck -->
+
+<!-- ── Navigation Controls ───────────────────────────────────── -->
+<div class="slide-counter" id="counter">01 / 08</div>
+
+<div class="nav-dots" id="nav-dots">
+  <button class="nav-dot active" data-idx="0" aria-label="Slide 1"></button>
+  <button class="nav-dot" data-idx="1" aria-label="Slide 2"></button>
+  <button class="nav-dot" data-idx="2" aria-label="Slide 3"></button>
+  <button class="nav-dot" data-idx="3" aria-label="Slide 4"></button>
+  <button class="nav-dot" data-idx="4" aria-label="Slide 5"></button>
+  <button class="nav-dot" data-idx="5" aria-label="Slide 6"></button>
+  <button class="nav-dot" data-idx="6" aria-label="Slide 7"></button>
+  <button class="nav-dot" data-idx="7" aria-label="Slide 8"></button>
+</div>
+
+<div class="nav-arrows">
+  <button class="nav-btn" id="btn-prev" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <button class="nav-btn" id="btn-next" aria-label="Próximo"><i class="fas fa-chevron-right"></i></button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SCRIPTS
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+// ── Canvas de Partículas ──────────────────────────────────────
+
+(function () {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, particles = [], spheres = [], mouse = { x: 0, y: 0 };
+
+  const COLORS = ['rgba(6,182,212,', 'rgba(245,158,11,', 'rgba(139,92,246,', 'rgba(16,185,129,'];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function mkParticle() {
+    return {
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 1.4 + 0.3,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
+      alpha: Math.random() * 0.45 + 0.08,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    };
+  }
+
+  function mkSphere() {
+    return {
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 90 + 35,
+      vx: (Math.random() - 0.5) * 0.1,
+      vy: (Math.random() - 0.5) * 0.1,
+      alpha: 0.03 + Math.random() * 0.04,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      phase: Math.random() * Math.PI * 2,
+    };
+  }
+
+  function init() {
+    const n = Math.min(Math.floor(W * H / 12000), 100);
+    particles = Array.from({ length: n }, mkParticle);
+    spheres   = Array.from({ length: 7 }, mkSphere);
+  }
+
+  function drawSphere(s, t) {
+    const pulse = Math.sin(t * 0.0007 + s.phase) * 0.015;
+    const a = s.alpha + pulse;
+    const g = ctx.createRadialGradient(s.x - s.r * 0.3, s.y - s.r * 0.3, s.r * 0.1, s.x, s.y, s.r);
+    g.addColorStop(0, s.color + (a * 2.5) + ')');
+    g.addColorStop(0.5, s.color + a + ')');
+    g.addColorStop(1, s.color + '0)');
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = g; ctx.fill();
+  }
+
+  function drawLines() {
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const d  = Math.sqrt(dx*dx + dy*dy);
+        if (d < 130) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(6,182,212,${(1 - d/130) * 0.08})`;
+          ctx.lineWidth = 0.5; ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function move(p, isp) {
+    if (isp) {
+      const dx = mouse.x - p.x, dy = mouse.y - p.y;
+      const d  = Math.sqrt(dx*dx+dy*dy);
+      if (d < 180) { p.vx += dx/d*0.004; p.vy += dy/d*0.004; }
+      p.vx *= 0.996; p.vy *= 0.996;
+    }
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < -p.r) p.x = W + p.r; if (p.x > W + p.r) p.x = -p.r;
+    if (p.y < -p.r) p.y = H + p.r; if (p.y > H + p.r) p.y = -p.r;
+  }
+
+  function loop(t) {
+    ctx.clearRect(0, 0, W, H);
+    spheres.forEach(s => { move(s, false); drawSphere(s, t); });
+    drawLines();
+    particles.forEach(p => {
+      move(p, true);
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color + p.alpha + ')'; ctx.fill();
+    });
+    requestAnimationFrame(loop);
+  }
+
+  resize(); init(); requestAnimationFrame(loop);
+  window.addEventListener('resize', () => { resize(); init(); });
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+})();
+
+// ── Slide Engine ──────────────────────────────────────────────
+
+const slides = Array.from(document.querySelectorAll('.slide'));
+const dots   = Array.from(document.querySelectorAll('.nav-dot'));
+const counter = document.getElementById('counter');
+let current = 0;
+let isAnimating = false;
+
+function goTo(idx) {
+  if (isAnimating || idx === current || idx < 0 || idx >= slides.length) return;
+  isAnimating = true;
+
+  slides[current].classList.remove('active');
+  slides[current].classList.add('exit-up');
+  dots[current].classList.remove('active');
+
+  setTimeout(() => {
+    slides[current - 1 === idx ? current : current].classList.remove('exit-up');
+    current = idx;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+    counter.textContent = String(current + 1).padStart(2,'0') + ' / ' + String(slides.length).padStart(2,'0');
+    setTimeout(() => { isAnimating = false; }, 550);
+  }, 200);
+}
+
+document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+
+dots.forEach(dot => dot.addEventListener('click', () => goTo(+dot.dataset.idx)));
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                     { e.preventDefault(); goTo(current - 1); }
+});
+
+// Touch support
+let touchX = 0;
+document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+document.addEventListener('touchend',   e => {
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 50) { dx < 0 ? goTo(current + 1) : goTo(current - 1); }
+});
+
+// ── Heatmap Builder ───────────────────────────────────────────
+
+(function () {
+  const top3   = [10,53,5];
+  const hot2   = [2,20,26,42,58,33,17,37,9,55];
+  const hot1   = [14,32,47,7,29,45,60,11,38,13,49,22,6];
+  const warm   = [3,18,28,36,41,44,51,57,15,23];
+  const container = document.getElementById('heatmap');
+  if (!container) return;
+
+  for (let n = 1; n <= 60; n++) {
+    const cell = document.createElement('div');
+    cell.className = 'hm-cell';
+    cell.textContent = n;
+    if (top3.includes(n))  cell.classList.add('hm-hot3');
+    else if (hot2.includes(n))  cell.classList.add('hm-hot2');
+    else if (hot1.includes(n))  cell.classList.add('hm-hot1');
+    else if (warm.includes(n))  cell.classList.add('hm-warm');
+    else if (n % 3 === 0)       cell.classList.add('hm-cool');
+    else                         cell.classList.add('hm-cold');
+    container.appendChild(cell);
+  }
+})();
+</script>
+
+</body>
+</html>

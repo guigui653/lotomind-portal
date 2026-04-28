@@ -15,3 +15,9 @@ from modules.analise_avancada.filtros_estruturais import (
     FiltroZonaEspacial,
 )
 from modules.analise_avancada.avaliador import AvaliadorDeJogos
+from modules.analise_avancada.fisica_teorica import (
+    calcular_peso_tinta,
+    calcular_temperatura_newton,
+    GloboFisicoSimulator,
+    analisar_fisica_jogo,
+)

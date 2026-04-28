@@ -51,7 +51,13 @@
                     <a href="{{ url_for('lotofacil.inteligencia_page') }}" class="sidebar-link" style="border-left: 3px solid var(--accent-purple); background: rgba(155,89,182,0.05);">
                         <i class="bi bi-cpu-fill" style="color: var(--accent-purple)"></i> Inteligência v2.0
                     </a>
-                    
+                    <a href="{{ url_for('lotofacil.trade_page') }}" class="sidebar-link" style="border-left: 3px solid #f0b429; background: rgba(240,180,41,0.07);">
+                        <i class="bi bi-graph-up-arrow" style="color: #f0b429"></i> Trade Engine
+                    </a>
+                    <a href="{{ url_for('lotofacil.hibrido_page') }}" class="sidebar-link {% if request.endpoint == 'lotofacil.hibrido_page' %}active{% endif %}" style="border-left: 3px solid #e040fb; background: rgba(224,64,251,0.07);">
+                        <i class="bi bi-lightning-charge-fill" style="color: #e040fb"></i> Funil MC + IA ⚡
+                    </a>
+
                     <!-- Arsenal Centralizado -->
                     <div class="sidebar-category mt-4">
                         <i class="bi bi-shield-check sidebar-icon text-warning"></i>
@@ -71,6 +77,12 @@
             </a>
             <a href="/megasena/gerador" class="sidebar-link">
                 <i class="bi bi-dice-6-fill"></i> Gerador
+            </a>
+            <a href="{{ url_for('megasena.trade_page') }}" class="sidebar-link" style="border-left: 3px solid #10b981; background: rgba(16,185,129,0.07);">
+                <i class="bi bi-graph-up-arrow" style="color: #10b981"></i> MegaMind Trade
+            </a>
+            <a href="{{ url_for('megasena.quant_master_page') }}" class="sidebar-link {% if request.endpoint == 'megasena.quant_master_page' %}active{% endif %}" style="border-left: 3px solid #f59e0b; background: rgba(245,158,11,0.07);">
+                <i class="bi bi-lightning-charge-fill" style="color: #f59e0b"></i> Quant-Master ⚡
             </a>
         </nav>
 

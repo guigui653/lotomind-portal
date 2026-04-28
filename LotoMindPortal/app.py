@@ -81,6 +81,18 @@ def create_app():
     def dashboard():
         return render_template('dashboard.html')
 
+    @main_bp.route('/presentation')
+    def presentation():
+        """Serve a apresentação MegaMind Quant 3.0 (sem autenticação)."""
+        from flask import send_from_directory
+        return send_from_directory(app.root_path, 'megamind_evolution.html')
+
+    @main_bp.route('/megamind-dashboard')
+    def megamind_dashboard():
+        """Serve o Dashboard BI MegaMind Quant (sem autenticação)."""
+        from flask import send_from_directory
+        return send_from_directory(app.root_path, 'megamind_dashboard.html')
+
     app.register_blueprint(main_bp)
 
     # ── Forçar sessão permanente ──────────────────────────
@@ -96,3 +108,4 @@ app = create_app()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)
+    

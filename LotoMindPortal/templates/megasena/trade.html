@@ -1,0 +1,634 @@
+{% extends "base.html" %}
+
+{% block title %}MegaMind Trade Engine — Mega-Sena{% endblock %}
+{% block page_title %}📈 MegaMind Trade — Analise Quantitativa Mega-Sena{% endblock %}
+
+{% block content %}
+{% if erro %}
+<div class="alert alert-danger">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  Falha ao carregar dados historicos. Verifique a conexao.
+</div>
+{% else %}
+<style>
+  :root {
+    --mg-green:   #10b981;
+    --mg-teal:    #06b6d4;
+    --mg-gold:    #f59e0b;
+    --mg-red:     #ef4444;
+    --mg-purple:  #8b5cf6;
+    --mg-dim:     rgba(255,255,255,0.06);
+    --mg-border:  rgba(255,255,255,0.08);
+    --mg-card:    rgba(10,18,30,0.88);
+  }
+  .mg-page { font-family: 'Inter', sans-serif; }
+
+  /* Hero */
+  .mg-hero {
+    background: linear-gradient(135deg, #050d18 0%, #0a1628 55%, #071220 100%);
+    border: 1px solid var(--mg-border);
+    border-radius: 16px; padding: 2rem 2.5rem; margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+  }
+  .mg-hero::before {
+    content:'';position:absolute;inset:0;
+    background: repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(16,185,129,0.02) 60px,rgba(16,185,129,0.02) 61px);
+    pointer-events:none;
+  }
+  .mg-hero-title {
+    font-size:1.85rem;font-weight:800;
+    background:linear-gradient(90deg,var(--mg-green),#6ee7b7,var(--mg-teal));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    letter-spacing:-.5px;
+  }
+  .mg-hero-sub { color:rgba(255,255,255,.4);font-size:.85rem; }
+  .mg-ticker {
+    background:rgba(0,0,0,.45);border:1px solid var(--mg-border);border-radius:8px;
+    padding:.4rem 1rem;font-size:.78rem;color:var(--mg-green);font-family:'Courier New',monospace;
+  }
+  .mg-ticker-live { color:var(--mg-teal);font-weight:700; }
+
+  /* Cards */
+  .mg-card {
+    background:var(--mg-card);border:1px solid var(--mg-border);border-radius:14px;
+    padding:1.5rem;margin-bottom:1.5rem;transition:border-color .25s;
+  }
+  .mg-card:hover { border-color:rgba(16,185,129,0.3); }
+  .mg-card-header {
+    display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;
+  }
+  .mg-badge {
+    background:linear-gradient(135deg,var(--mg-green),#059669);
+    color:#000;font-weight:900;font-size:.72rem;
+    padding:.25rem .65rem;border-radius:20px;letter-spacing:.08em;text-transform:uppercase;
+  }
+  .mg-badge-2 { background:linear-gradient(135deg,var(--mg-teal),#0891b2); }
+  .mg-badge-3 { background:linear-gradient(135deg,var(--mg-purple),#7c3aed); }
+  .mg-card-title { font-size:1rem;font-weight:700;color:#fff;margin:0; }
+  .mg-card-sub { font-size:.75rem;color:rgba(255,255,255,.35);margin-left:auto; }
+
+  /* Dezena chips */
+  .dz-chip {
+    display:inline-flex;align-items:center;justify-content:center;
+    width:36px;height:36px;border-radius:50%;
+    font-weight:800;font-size:.8rem;
+    border:2px solid rgba(255,255,255,.1);
+    background:rgba(255,255,255,.05);color:#ccc;
+    transition:all .2s;margin:2px;
+  }
+  .dz-chip.trend { border-color:var(--mg-green);color:var(--mg-green); }
+  .dz-chip.consol { border-color:var(--mg-teal);color:var(--mg-teal); }
+  .dz-chip.oversold { border-color:var(--mg-gold);color:var(--mg-gold);
+    box-shadow:0 0 10px rgba(245,158,11,.4); }
+  .dz-chip.destaque {
+    background:linear-gradient(135deg,var(--mg-green),#059669);
+    border-color:var(--mg-green);color:#000;
+    box-shadow:0 0 12px rgba(16,185,129,.5);
+  }
+
+  /* Quadrante grid */
+  .quad-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1rem; }
+  .quad-card {
+    background:rgba(255,255,255,.03);border:1px solid var(--mg-border);border-radius:10px;
+    padding:.75rem;text-align:center;
+  }
+  .quad-label { font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.3);margin-bottom:.4rem; }
+  .quad-count { font-size:1.7rem;font-weight:900; }
+  .quad-ok { color:var(--mg-green); }
+  .quad-warn { color:var(--mg-gold); }
+  .quad-over { color:var(--mg-red); }
+  @media(max-width:600px){ .quad-grid{grid-template-columns:repeat(2,1fr);} }
+
+  /* Bollinger stats */
+  .bol-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1rem; }
+  .bol-stat { background:rgba(255,255,255,.04);border:1px solid var(--mg-border);border-radius:10px;padding:.7rem .5rem;text-align:center; }
+  .bol-val { font-size:1.3rem;font-weight:800; }
+  .bol-lab { font-size:.64rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.06em; }
+  @media(max-width:600px){ .bol-grid{grid-template-columns:repeat(2,1fr);} }
+
+  /* SMA bar */
+  .sma-track { height:5px;background:rgba(255,255,255,.08);border-radius:3px; }
+  .sma-fill  { height:5px;border-radius:3px;transition:width .6s ease; }
+
+  /* Tag status */
+  .tag-ok {
+    background:rgba(16,185,129,.15);color:var(--mg-green);
+    border:1px solid rgba(16,185,129,.3);
+    padding:.15rem .5rem;border-radius:12px;font-size:.68rem;font-weight:700;white-space:nowrap;
+  }
+  .tag-warn {
+    background:rgba(245,158,11,.15);color:var(--mg-gold);
+    border:1px solid rgba(245,158,11,.3);
+    padding:.15rem .5rem;border-radius:12px;font-size:.68rem;font-weight:700;white-space:nowrap;
+  }
+  .tag-ov {
+    background:rgba(239,68,68,.15);color:#f87171;
+    border:1px solid rgba(239,68,68,.3);
+    padding:.15rem .5rem;border-radius:12px;font-size:.68rem;font-weight:700;white-space:nowrap;
+  }
+
+  /* Palpites */
+  .palpite-card {
+    background:linear-gradient(135deg,rgba(10,18,30,.9),rgba(5,12,24,.95));
+    border:1px solid rgba(16,185,129,.25);border-radius:12px;padding:1rem 1.1rem;margin-bottom:.9rem;
+    transition:border-color .25s,box-shadow .25s;
+  }
+  .palpite-card:hover { border-color:rgba(16,185,129,.55);box-shadow:0 4px 20px rgba(16,185,129,.12); }
+  .p-num {
+    display:inline-flex;align-items:center;justify-content:center;
+    width:36px;height:36px;border-radius:50%;
+    font-weight:800;font-size:.82rem;margin:2px;
+    background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);color:#ddd;
+  }
+  .p-num.ov-num {
+    background:linear-gradient(135deg,#d97706,#f59e0b);border-color:transparent;color:#000;
+    box-shadow:0 0 8px rgba(245,158,11,.4);
+  }
+  .p-num.trend-num {
+    background:linear-gradient(135deg,#059669,#10b981);border-color:transparent;color:#000;
+  }
+  .soma-badge {
+    font-size:.72rem;font-weight:700;
+    background:rgba(6,182,212,.15);color:var(--mg-teal);
+    border:1px solid rgba(6,182,212,.3);padding:.2rem .6rem;border-radius:20px;
+  }
+
+  /* Backtest */
+  .bt-card {
+    background:rgba(5,12,24,.7);border:1px solid var(--mg-border);border-radius:12px;
+    padding:.9rem 1.1rem;margin-bottom:.65rem;
+  }
+  .bt-conc { font-size:.7rem;color:var(--mg-green);font-weight:700;letter-spacing:.06em; }
+  .bt-badge { font-size:.7rem;font-weight:700;padding:.15rem .5rem;border-radius:12px; }
+  .bt-6 { background:rgba(16,185,129,.25);color:var(--mg-green);border:1px solid rgba(16,185,129,.4); }
+  .bt-5 { background:rgba(139,92,246,.2);color:#a78bfa;border:1px solid rgba(139,92,246,.35); }
+  .bt-4 { background:rgba(245,158,11,.15);color:var(--mg-gold);border:1px solid rgba(245,158,11,.3); }
+  .bt-3 { background:rgba(6,182,212,.1);color:var(--mg-teal);border:1px solid rgba(6,182,212,.2); }
+  .bt-x { background:rgba(255,255,255,.05);color:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.08); }
+
+  /* Resumo Backtest */
+  .bt-resumo { display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;margin-bottom:1rem; }
+  .bt-r-item { text-align:center;padding:.7rem .4rem;background:rgba(255,255,255,.03);border:1px solid var(--mg-border);border-radius:10px; }
+  .bt-r-val { font-size:1.3rem;font-weight:900; }
+  .bt-r-lab { font-size:.62rem;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.06em; }
+  @media(max-width:600px){ .bt-resumo{grid-template-columns:repeat(2,1fr);} }
+
+  /* Sharpe card */
+  .sharpe-card {
+    background:linear-gradient(135deg,rgba(139,92,246,.1),rgba(16,185,129,.08));
+    border:1px solid rgba(139,92,246,.25);border-radius:12px;padding:1rem;margin-bottom:1rem;
+    display:flex;align-items:center;gap:1rem;
+  }
+  .sharpe-val { font-size:2.5rem;font-weight:900;color:var(--mg-purple);line-height:1; }
+
+  /* Loading */
+  #mg-loading {
+    position:fixed;inset:0;z-index:9999;
+    background:rgba(3,8,18,.9);backdrop-filter:blur(6px);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  .mg-spinner {
+    width:52px;height:52px;border-radius:50%;
+    border:4px solid rgba(16,185,129,.15);border-top-color:var(--mg-green);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* Btn */
+  .btn-mg {
+    background:linear-gradient(135deg,#059669,#10b981);color:#000;
+    font-weight:800;font-size:.88rem;border:none;border-radius:10px;
+    padding:.65rem 1.4rem;cursor:pointer;transition:all .2s;
+  }
+  .btn-mg:hover { transform:translateY(-2px);box-shadow:0 6px 20px rgba(16,185,129,.4); }
+  .btn-mg:disabled { opacity:.5;cursor:not-allowed;transform:none;box-shadow:none; }
+  .sec-label { font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.28);margin-bottom:.5rem;display:block; }
+</style>
+
+<!-- Loading -->
+<div id="mg-loading">
+  <div class="mg-spinner mb-3"></div>
+  <p class="fw-bold mb-1" style="font-size:.9rem;color:var(--mg-green)">MegaMind Trade Engine</p>
+  <p class="text-muted" style="font-size:.75rem">Processando 3 Pilares quantitativos...</p>
+</div>
+
+<div class="mg-page" id="mg-content" style="display:none">
+
+  <!-- HERO -->
+  <div class="mg-hero mb-4">
+    <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+      <div>
+        <div class="mg-hero-title">📈 MegaMind Trade Engine</div>
+        <div class="mg-hero-sub mt-1">Momentum + Ciclos + SMA-50 + Bollinger + Backtest 10 concursos · Mega-Sena CEF</div>
+      </div>
+      <div class="text-end">
+        <div id="hero-conc" class="fw-bold" style="font-size:1.1rem;color:var(--mg-green)"></div>
+        <div id="hero-data" class="text-muted" style="font-size:.75rem"></div>
+        <div id="hero-soma" class="mt-1" style="font-size:.78rem;color:rgba(255,255,255,.4)"></div>
+      </div>
+    </div>
+    <div class="mg-ticker mt-3" id="mg-ticker">
+      <span class="mg-ticker-live">● LIVE</span>&nbsp; Aguardando analise...
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Coluna Principal -->
+    <div class="col-lg-8">
+
+      <!-- PILAR 1 -->
+      <div class="mg-card">
+        <div class="mg-card-header">
+          <span class="mg-badge">Pilar 1</span>
+          <span class="mg-card-title">Momentum e Ciclos</span>
+          <span class="mg-card-sub">Trend 5 conc. | Consolidacao 10 conc. | Quadrantes</span>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <span class="sec-label"><i class="bi bi-lightning-fill" style="color:var(--mg-green)"></i> Trend Quinzenal (5 concursos)</span>
+            <div id="chips-trend" class="d-flex flex-wrap gap-1"></div>
+          </div>
+          <div class="col-md-6">
+            <span class="sec-label"><i class="bi bi-activity" style="color:var(--mg-teal)"></i> Consolidacao Mensal (10 conc. 2+ ocorrencias)</span>
+            <div id="chips-consol" class="d-flex flex-wrap gap-1"></div>
+          </div>
+        </div>
+
+        <!-- Distribuição quadrantes do último sorteio -->
+        <span class="sec-label"><i class="bi bi-grid-3x3" style="color:rgba(255,255,255,.4)"></i> Quadrantes — Ultimo Sorteio</span>
+        <div class="quad-grid" id="quad-grid"></div>
+      </div>
+
+      <!-- PILAR 2a — SMA-50 -->
+      <div class="mg-card">
+        <div class="mg-card-header">
+          <span class="mg-badge mg-badge-2">Pilar 2a</span>
+          <span class="mg-card-title">SMA-50 — Dezenas Oversold (Reversao de Tendencia)</span>
+          <span class="mg-card-sub">Top 8 atrasadas</span>
+        </div>
+        <div id="sma-container"></div>
+      </div>
+
+      <!-- PILAR 2b — BOLLINGER -->
+      <div class="mg-card">
+        <div class="mg-card-header">
+          <span class="mg-badge mg-badge-2">Pilar 2b</span>
+          <span class="mg-card-title">Bollinger da Soma — Canal de Volatilidade</span>
+          <span class="mg-card-sub">Canal: 150-220 | Media historica + 2sigma</span>
+        </div>
+        <div class="bol-grid" id="bol-stats"></div>
+        <div style="position:relative;height:200px">
+          <canvas id="chart-bollinger"></canvas>
+        </div>
+      </div>
+
+      <!-- PILAR 3 — BACKTEST -->
+      <div class="mg-card">
+        <div class="mg-card-header">
+          <span class="mg-badge mg-badge-3">Pilar 3</span>
+          <span class="mg-card-title">Backtesting — Ultimos 10 Concursos</span>
+          <span class="mg-card-sub">Sharpe Ratio da Estrategia</span>
+        </div>
+        <div class="sharpe-card" id="sharpe-card"></div>
+        <div class="bt-resumo" id="bt-resumo"></div>
+        <div id="bt-dist-faixas" class="mb-3"></div>
+        <div id="bt-concursos"></div>
+      </div>
+
+    </div>
+
+    <!-- COLUNA LATERAL -->
+    <div class="col-lg-4">
+      <div class="mg-card" style="position:sticky;top:80px">
+        <div class="mg-card-header">
+          <span class="mg-badge" style="background:linear-gradient(135deg,#0891b2,#06b6d4)">GERAR</span>
+          <span class="mg-card-title">Palpites Quantitativos</span>
+        </div>
+        <p class="text-muted" style="font-size:.73rem;margin-top:-.5rem;margin-bottom:.9rem">
+          5 jogos filtrados pelo Bollinger.<br>
+          <span style="color:var(--mg-green)">■</span> Trend &nbsp;
+          <span style="color:var(--mg-gold)">■</span> Oversold
+        </p>
+        <div id="palpite-bol-info" class="mb-2" style="font-size:.7rem;color:rgba(255,255,255,.35)"></div>
+        <button class="btn-mg w-100 mb-3" id="btn-gerar" onclick="gerarPalpites()">
+          <i class="bi bi-lightning-fill"></i> Gerar 5 Palpites
+        </button>
+        <div id="palpites-container">
+          <div class="text-center text-muted py-3" style="font-size:.8rem">
+            <i class="bi bi-graph-up-arrow" style="font-size:2rem;color:var(--mg-green);opacity:.4"></i>
+            <p class="mt-2">Clique para gerar palpites<br>filtrados pelo canal Bollinger</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+var _data = null;
+var _bollChart = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+  carregarAnalise();
+});
+
+async function carregarAnalise() {
+  try {
+    var res = await fetch('/megasena/api/trade-analise');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    _data = await res.json();
+    if (_data.erro) throw new Error(_data.erro);
+    renderAll(_data);
+  } catch(e) {
+    document.getElementById('mg-loading').innerHTML =
+      '<div class="text-danger fw-bold p-4"><i class="bi bi-exclamation-triangle-fill"></i> Erro: ' + e.message + '</div>';
+  }
+}
+
+function renderAll(d) {
+  renderHero(d.ultimo_concurso);
+  renderPilar1(d.pilar1, d.ultimo_concurso);
+  renderSMA50(d.pilar2.oversold);
+  renderBollinger(d.pilar2.bollinger);
+  renderBacktest(d.pilar3);
+  document.getElementById('mg-loading').style.display = 'none';
+  document.getElementById('mg-content').style.display = 'block';
+}
+
+function padZ(n){ return String(n).padStart(2,'0'); }
+
+function renderHero(u) {
+  document.getElementById('hero-conc').textContent = 'Concurso #' + u.concurso;
+  document.getElementById('hero-data').textContent = u.data;
+  document.getElementById('hero-soma').textContent = 'Soma: ' + u.soma;
+  var dezStr = u.dezenas.map(padZ).join(' . ');
+  document.getElementById('mg-ticker').innerHTML =
+    '<span class="mg-ticker-live">● ULTIMO</span>&nbsp;' +
+    '<span style="color:#fff;letter-spacing:.1em">' + dezStr + '</span>&nbsp;&nbsp;' +
+    '<span style="color:rgba(255,255,255,.4)">|</span>&nbsp;&nbsp;' +
+    '<span style="color:var(--mg-teal)">SOMA: ' + u.soma + '</span>&nbsp;&nbsp;' +
+    '<span style="color:rgba(255,255,255,.4)">|</span>&nbsp;&nbsp;' +
+    '<span style="color:rgba(255,255,255,.3)">' + u.data + '</span>';
+}
+
+function renderPilar1(p1, ult) {
+  var trendNums = new Set(p1.trend_quinzenal.map(function(t){ return t.dezena; }));
+  var consolNums = new Set(p1.consolidacao_mensal.map(function(c){ return c.dezena; }));
+
+  // Chips trend
+  var ct = document.getElementById('chips-trend');
+  p1.trend_quinzenal.forEach(function(t) {
+    var cls = consolNums.has(t.dezena) ? 'destaque' : 'trend';
+    ct.insertAdjacentHTML('beforeend',
+      '<span class="dz-chip ' + cls + '" title="' + t.freq + ' ocorr. (' + t.quadrante + ')">' + padZ(t.dezena) + '</span>');
+  });
+
+  // Chips consolidacao
+  var cc = document.getElementById('chips-consol');
+  p1.consolidacao_mensal.forEach(function(c) {
+    var cls = trendNums.has(c.dezena) ? 'destaque' : 'consol';
+    cc.insertAdjacentHTML('beforeend',
+      '<span class="dz-chip ' + cls + '" title="' + c.freq + '/10 (' + c.quadrante + ')">' + padZ(c.dezena) + '</span>');
+  });
+
+  // Quadrantes do ultimo sorteio
+  var qg = document.getElementById('quad-grid');
+  var quadNames = ['Q1 (01-15)', 'Q2 (16-30)', 'Q3 (31-45)', 'Q4 (46-60)'];
+  var ultDez = ult.dezenas;
+  quadNames.forEach(function(q) {
+    var start = parseInt(q.match(/(\d+)-/)[1]);
+    var end   = parseInt(q.match(/-(\d+)/)[1]);
+    var nums = ultDez.filter(function(d){ return d >= start && d <= end; });
+    var cls = nums.length > 3 ? 'quad-over' : nums.length === 0 ? 'quad-warn' : 'quad-ok';
+    qg.insertAdjacentHTML('beforeend',
+      '<div class="quad-card">' +
+        '<div class="quad-label">' + q + '</div>' +
+        '<div class="quad-count ' + cls + '">' + nums.length + '</div>' +
+        '<div style="font-size:.65rem;color:rgba(255,255,255,.3);margin-top:.2rem">' +
+          (nums.length > 0 ? nums.map(padZ).join(' ') : 'nenhuma') +
+        '</div>' +
+        (nums.length > 3 ? '<div class="text-danger" style="font-size:.6rem">Excede 3!</div>' : '') +
+      '</div>');
+  });
+}
+
+function renderSMA50(oversold) {
+  var container = document.getElementById('sma-container');
+  if (!oversold || !oversold.length) {
+    container.innerHTML = '<p class="text-muted small">Sem dados SMA.</p>';
+    return;
+  }
+  oversold.forEach(function(item) {
+    var pct50 = Math.min(item.pct_sma50, 100);
+    var pctH  = Math.min(item.pct_hist, 100);
+    var pctE  = (item.esperado * 100).toFixed(1);
+    var tagEl;
+    if (item.status === 'oversold') {
+      tagEl = '<span class="tag-warn">OVERSOLD (Reversao)</span>';
+    } else if (item.status === 'acima_sma') {
+      tagEl = '<span class="tag-ok">ACIMA SMA-50</span>';
+    } else {
+      tagEl = '<span style="font-size:.68rem;color:rgba(255,255,255,.3)">Neutro</span>';
+    }
+    var barColor = item.status === 'oversold' ? 'var(--mg-gold)' :
+                   item.status === 'acima_sma' ? 'var(--mg-green)' : 'var(--mg-teal)';
+    container.insertAdjacentHTML('beforeend',
+      '<div class="d-flex align-items-center gap-3 mb-2 p-2" style="background:rgba(255,255,255,.03);border-radius:8px">' +
+        '<span class="dz-chip oversold" style="flex-shrink:0;width:34px;height:34px;font-size:.76rem">' + padZ(item.dezena) + '</span>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div class="d-flex justify-content-between mb-1" style="font-size:.68rem">' +
+            '<span style="color:rgba(255,255,255,.45)">SMA-50: <strong style="color:#fff">' + pct50.toFixed(1) + '%</strong></span>' +
+            '<span style="color:rgba(255,255,255,.45)">Hist: <strong style="color:#fff">' + pctH.toFixed(1) + '%</strong></span>' +
+            '<span style="color:rgba(255,255,255,.3)">Atraso: <strong style="color:#fff">' + item.atraso + '</strong></span>' +
+            '<span style="color:rgba(255,255,255,.3)">' + item.quadrante.split(' ')[0] + '</span>' +
+          '</div>' +
+          '<div class="sma-track"><div class="sma-fill" style="width:' + pct50.toFixed(1) + '%;background:' + barColor + '"></div></div>' +
+        '</div>' +
+        '<div style="flex-shrink:0">' + tagEl + '</div>' +
+      '</div>');
+  });
+}
+
+function renderBollinger(bol) {
+  if (!bol) return;
+  var sg = document.getElementById('bol-stats');
+  sg.innerHTML =
+    '<div class="bol-stat"><div class="bol-val" style="color:var(--mg-green)">' + bol.banda_inferior.toFixed(0) + '</div><div class="bol-lab">Banda Inferior</div></div>' +
+    '<div class="bol-stat"><div class="bol-val" style="color:var(--mg-gold)">' + bol.media.toFixed(1) + '</div><div class="bol-lab">Media (' + bol.janela + ' conc.)</div></div>' +
+    '<div class="bol-stat"><div class="bol-val" style="color:var(--mg-red)">' + bol.banda_superior.toFixed(0) + '</div><div class="bol-lab">Banda Superior</div></div>' +
+    '<div class="bol-stat"><div class="bol-val" style="color:var(--mg-teal)">' + bol.ultima_soma + '</div><div class="bol-lab">Ultima Soma (' + bol.zona_emoji + ')</div></div>';
+
+  if (_bollChart) _bollChart.destroy();
+  var ctx = document.getElementById('chart-bollinger').getContext('2d');
+  var labels = bol.concursos_historico.map(function(c){ return '#'+c; });
+  var somas = bol.somas_historico;
+  _bollChart = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels:labels,
+      datasets:[
+        { label:'Soma', data:somas, borderColor:'#60a5fa', backgroundColor:'rgba(96,165,250,.07)', borderWidth:2, pointRadius:2, tension:.3, fill:false },
+        { label:'Banda Sup', data:Array(somas.length).fill(bol.banda_superior), borderColor:'rgba(239,68,68,.55)', borderDash:[5,4], borderWidth:1.5, pointRadius:0, fill:false },
+        { label:'Media', data:Array(somas.length).fill(bol.media), borderColor:'rgba(245,158,11,.6)', borderDash:[4,3], borderWidth:1.5, pointRadius:0, fill:false },
+        { label:'Banda Inf', data:Array(somas.length).fill(bol.banda_inferior), borderColor:'rgba(16,185,129,.55)', borderDash:[5,4], borderWidth:1.5, pointRadius:0, fill:false }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{ color:'rgba(255,255,255,.28)', font:{size:9}, maxTicksLimit:10 }, grid:{ color:'rgba(255,255,255,.04)' } },
+        y:{ ticks:{ color:'rgba(255,255,255,.28)', font:{size:10} }, grid:{ color:'rgba(255,255,255,.06)' } }
+      }
+    }
+  });
+}
+
+function renderBacktest(bt) {
+  if (!bt || !bt.concursos) return;
+  var r = bt.resumo;
+
+  // Sharpe
+  var sharpeCls = r.sharpe_ratio >= 20 ? 'var(--mg-green)' : r.sharpe_ratio >= 10 ? 'var(--mg-gold)' : '#f87171';
+  var sharpeRating = r.sharpe_ratio >= 20 ? 'ESTRATEGIA FORTE' : r.sharpe_ratio >= 10 ? 'ESTRATEGIA MODERADA' : 'ESTRATEGIA FRACA';
+  document.getElementById('sharpe-card').innerHTML =
+    '<div>' +
+      '<div class="sharpe-val" style="color:' + sharpeCls + '">' + r.sharpe_ratio.toFixed(1) + '%</div>' +
+    '</div>' +
+    '<div>' +
+      '<div class="fw-bold mb-1" style="font-size:.9rem">' + sharpeRating + '</div>' +
+      '<div style="font-size:.72rem;color:rgba(255,255,255,.4)">Sharpe Ratio adaptado: (premiados / total palpites) × 100</div>' +
+      '<div style="font-size:.72rem;color:rgba(255,255,255,.4)">Quadras: <strong style="color:var(--mg-gold)">' + r.quadras + '</strong> &nbsp; Quinas: <strong style="color:#a78bfa">' + r.quinas + '</strong> &nbsp; Senas: <strong style="color:var(--mg-green)">' + r.senas + '</strong></div>' +
+    '</div>';
+
+  // Resumo grid
+  var rg = document.getElementById('bt-resumo');
+  rg.innerHTML =
+    '<div class="bt-r-item"><div class="bt-r-val" style="color:var(--mg-teal)">' + r.total_palpites + '</div><div class="bt-r-lab">Palpites Testados</div></div>' +
+    '<div class="bt-r-item"><div class="bt-r-val" style="color:' + (r.total_premiados>0?'var(--mg-green)':'#f87171') + '">' + r.total_premiados + '</div><div class="bt-r-lab">Premiados (4+)</div></div>' +
+    '<div class="bt-r-item"><div class="bt-r-val" style="color:var(--mg-gold)">' + r.taxa_premiacao.toFixed(1) + '%</div><div class="bt-r-lab">Taxa Premiacao</div></div>' +
+    '<div class="bt-r-item"><div class="bt-r-val" style="color:var(--mg-purple)">' + r.somas_dentro_bollinger + '/' + r.total_concursos + '</div><div class="bt-r-lab">Somas c/ Bollinger</div></div>';
+
+  // Distribuicao faixas
+  var df = r.distribuicao_acertos;
+  var totalF = Object.values(df).reduce(function(a,b){ return a+b; }, 0);
+  if (totalF > 0) {
+    var fHtml = '<div class="d-flex gap-1 mb-3 flex-wrap">';
+    [[6,'bt-6'],[5,'bt-5'],[4,'bt-4'],[3,'bt-3']].forEach(function(pair) {
+      var f = pair[0]; var cls = pair[1];
+      if (df[f] > 0) fHtml += '<span class="bt-badge ' + cls + '">' + df[f] + 'x ' + f + ' acertos</span>';
+    });
+    fHtml += '</div>';
+    document.getElementById('bt-dist-faixas').innerHTML = fHtml;
+  }
+
+  // Cards por concurso
+  var cont = document.getElementById('bt-concursos');
+  bt.concursos.forEach(function(conc) {
+    var realStr = conc.sorteio_real.map(padZ).join(' ');
+    var trendStr = conc.trend_nums_usados.map(padZ).join(' ');
+    var bolOk = conc.bollinger.soma_dentro;
+    var pHtml = '';
+    conc.palpites.forEach(function(p) {
+      var ac = p.acertos;
+      var cls = ac>=6?'bt-6':ac>=5?'bt-5':ac>=4?'bt-4':ac>=3?'bt-3':'bt-x';
+      var dezStr = p.dezenas.map(padZ).join(' ');
+      pHtml += '<div class="d-flex align-items-center gap-2 mb-1" style="font-size:.7rem">' +
+        '<span class="bt-badge ' + cls + '">' + ac + ' pts</span>' +
+        '<span style="color:rgba(255,255,255,.4);font-family:monospace">' + dezStr + '</span>' +
+        '<span class="ms-auto text-muted">S' + p.soma + '</span>' +
+      '</div>';
+    });
+    cont.insertAdjacentHTML('beforeend',
+      '<div class="bt-card">' +
+        '<div class="d-flex align-items-center gap-2 mb-2">' +
+          '<span class="bt-conc">CONCURSO #' + conc.concurso + '</span>' +
+          '<span class="text-muted" style="font-size:.66rem">' + conc.data + '</span>' +
+          '<span class="ms-auto ' + (bolOk?'tag-ok':'tag-ov') + '" style="font-size:.63rem">' +
+            (bolOk?'Soma OK Bollinger':'Soma Fora Bollinger') +
+          '</span>' +
+        '</div>' +
+        '<div class="mb-2" style="font-size:.68rem;color:rgba(255,255,255,.3)">' +
+          '<strong style="color:rgba(255,255,255,.5)">Sorteio:</strong> ' +
+          '<span style="font-family:monospace;color:var(--mg-green)">' + realStr + '</span>' +
+          ' S' + conc.soma_real + ' | [' + conc.bollinger.banda_inf + '-' + conc.bollinger.banda_sup + '] | ' +
+          '<strong style="color:rgba(255,255,255,.4)">Trend usadas (' + conc.acertos_trend_no_real + ' hits):</strong> ' +
+          '<span style="font-family:monospace;color:var(--mg-teal)">' + trendStr + '</span>' +
+        '</div>' +
+        '<div style="border-top:1px solid rgba(255,255,255,.05);padding-top:.4rem">' + pHtml + '</div>' +
+      '</div>');
+  });
+}
+
+async function gerarPalpites() {
+  var btn = document.getElementById('btn-gerar');
+  var cont = document.getElementById('palpites-container');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Gerando...';
+  cont.innerHTML = '<div class="text-center py-3"><div class="mg-spinner mx-auto mb-2" style="width:30px;height:30px;border-width:3px"></div><p class="text-muted" style="font-size:.73rem">Filtrando por Bollinger...</p></div>';
+
+  try {
+    var res = await fetch('/megasena/api/trade-gerar', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({qtd:5})
+    });
+    var data = await res.json();
+    if (data.erro) throw new Error(data.erro);
+
+    var bol = data.bollinger;
+    var trendNums = new Set((data.trend_quinzenal||[]).map(function(t){ return t.dezena; }));
+    var ovNums = new Set((data.oversold_top5||[]).map(function(o){ return o.dezena; }));
+
+    document.getElementById('palpite-bol-info').innerHTML =
+      'Canal: <span style="color:var(--mg-green)">' + bol.banda_inferior.toFixed(0) + '</span>' +
+      ' - <span style="color:var(--mg-red)">' + bol.banda_superior.toFixed(0) + '</span>' +
+      ' | Media: <span style="color:var(--mg-gold)">' + bol.media.toFixed(1) + '</span>';
+
+    cont.innerHTML = '';
+    if (!data.palpites || !data.palpites.length) {
+      cont.innerHTML = '<p class="text-muted small text-center py-3">Nenhum palpite gerou dentro do canal. Tente novamente.</p>';
+      return;
+    }
+
+    data.palpites.forEach(function(p, i) {
+      var numsH = '';
+      p.dezenas.forEach(function(d) {
+        var cls = ovNums.has(d) ? 'ov-num' : trendNums.has(d) ? 'trend-num' : '';
+        numsH += '<span class="p-num ' + cls + '">' + padZ(d) + '</span>';
+      });
+      var ovInc = p.oversold_incluidos || [];
+      var quadsH = '';
+      var dq = p.distribuicao_quadrantes || {};
+      ['Q1 (01-15)','Q2 (16-30)','Q3 (31-45)','Q4 (46-60)'].forEach(function(q) {
+        var v = dq[q] ? dq[q].length : 0;
+        quadsH += '<span class="me-1" style="font-size:.65rem;color:' + (v>3?'#f87171':'rgba(255,255,255,.35)') + '">' + q.substring(0,2) + ':' + v + '</span>';
+      });
+      cont.insertAdjacentHTML('beforeend',
+        '<div class="palpite-card">' +
+          '<div class="d-flex justify-content-between align-items-center mb-2">' +
+            '<span style="font-size:.68rem;color:rgba(255,255,255,.35);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Palpite ' + (i+1) + '</span>' +
+            '<span class="soma-badge">Soma ' + p.soma + '</span>' +
+          '</div>' +
+          '<div class="d-flex flex-wrap mb-2">' + numsH + '</div>' +
+          '<div class="d-flex justify-content-between" style="font-size:.66rem;color:rgba(255,255,255,.28)">' +
+            '<span>Quadrantes: ' + quadsH + '</span>' +
+            '<span>Oversold: ' + (ovInc.length > 0 ? ovInc.map(padZ).join(', ') : 'nenhum') + '</span>' +
+          '</div>' +
+        '</div>');
+    });
+
+  } catch(e) {
+    cont.innerHTML = '<p class="text-danger small"><i class="bi bi-exclamation-triangle"></i> ' + e.message + '</p>';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-lightning-fill"></i> Gerar 5 Palpites';
+  }
+}
+</script>
+{% endblock %}

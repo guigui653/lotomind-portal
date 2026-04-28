@@ -1,0 +1,622 @@
+{% extends "base.html" %}
+
+{% block title %}Trade Engine — LotoMind{% endblock %}
+{% block page_title %}🏦 Trade Engine — Análise Financeira Lotofácil{% endblock %}
+
+{% block content %}
+{% if erro %}
+<div class="alert alert-danger">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  Falha ao carregar dados históricos. Verifique a conexão.
+</div>
+{% else %}
+<!-- ═══════════════════════════════════════════════
+     ESTILOS EXCLUSIVOS DO TRADING ROOM
+     ═══════════════════════════════════════════════ -->
+<style>
+  :root {
+    --trade-gold:    #f0b429;
+    --trade-green:   #00d17a;
+    --trade-red:     #ff4d6d;
+    --trade-blue:    #3b82f6;
+    --trade-purple:  #a78bfa;
+    --trade-dim:     rgba(255,255,255,0.06);
+    --trade-border:  rgba(255,255,255,0.09);
+    --card-bg:       rgba(14, 17, 27, 0.85);
+  }
+  .trade-page { font-family: 'Inter', sans-serif; }
+  .trade-hero {
+    background: linear-gradient(135deg, #0a0f1e 0%, #111827 50%, #0f172a 100%);
+    border: 1px solid var(--trade-border);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .trade-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 24px,
+      rgba(240,180,41,0.03) 24px, rgba(240,180,41,0.03) 25px
+    );
+    pointer-events: none;
+  }
+  .trade-hero-title {
+    font-size: 1.9rem; font-weight: 800;
+    background: linear-gradient(90deg, var(--trade-gold), #fff8e0, var(--trade-gold));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  .trade-hero-sub { color: rgba(255,255,255,0.45); font-size: 0.85rem; }
+  .ticker-bar {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--trade-border);
+    border-radius: 8px;
+    padding: 0.4rem 1rem;
+    font-size: 0.78rem;
+    color: var(--trade-gold);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.04em;
+  }
+  .ticker-badge { color: var(--trade-green); font-weight: 700; }
+  .pilar-card {
+    background: var(--card-bg);
+    border: 1px solid var(--trade-border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: border-color .25s;
+  }
+  .pilar-card:hover { border-color: rgba(240,180,41,0.35); }
+  .pilar-header {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .pilar-badge {
+    background: linear-gradient(135deg, var(--trade-gold), #f59e0b);
+    color: #000; font-weight: 900; font-size: 0.72rem;
+    padding: 0.25rem 0.65rem; border-radius: 20px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .pilar-title { font-size: 1rem; font-weight: 700; color: #fff; margin: 0; }
+  .pilar-sub { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-left: auto; }
+  .dezena-chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; border-radius: 50%;
+    font-weight: 800; font-size: 0.82rem;
+    border: 2px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: #ddd; transition: all .2s;
+  }
+  .dezena-chip.ancora {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: var(--trade-gold); color: #000;
+    box-shadow: 0 0 12px rgba(240,180,41,0.5);
+  }
+  .dezena-chip.semana { border-color: var(--trade-blue); color: var(--trade-blue); }
+  .dezena-chip.quinzena { border-color: var(--trade-purple); color: var(--trade-purple); }
+  .ancoras-table { width: 100%; border-collapse: collapse; }
+  .ancoras-table th {
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.35); padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid var(--trade-border);
+  }
+  .ancoras-table td {
+    padding: 0.55rem 0.75rem; font-size: 0.82rem; color: #ccc;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .ancoras-table tr:hover td { background: rgba(240,180,41,0.04); }
+  .tag-confirmado {
+    background: rgba(0,209,122,0.15); color: var(--trade-green);
+    border: 1px solid rgba(0,209,122,0.3);
+    padding: 0.15rem 0.55rem; border-radius: 12px; font-size: 0.7rem; font-weight: 700;
+    white-space: nowrap;
+  }
+  .tag-alerta {
+    background: rgba(255,77,109,0.15); color: #ff6b6b;
+    border: 1px solid rgba(255,77,109,0.3);
+    padding: 0.15rem 0.55rem; border-radius: 12px; font-size: 0.7rem; font-weight: 700;
+    white-space: nowrap;
+  }
+  .sma-bar-track { height: 5px; background: rgba(255,255,255,0.08); border-radius: 3px; }
+  .sma-bar-fill  { height: 5px; border-radius: 3px; transition: width .6s ease; }
+  .bollinger-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .bol-stat {
+    text-align: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--trade-border);
+    border-radius: 10px; padding: 0.75rem 0.5rem;
+  }
+  .bol-stat-val { font-size: 1.3rem; font-weight: 800; }
+  .bol-stat-label { font-size: 0.66rem; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.06em; }
+  @media (max-width:600px) { .bollinger-stats { grid-template-columns: repeat(2,1fr); } }
+  .palpite-card {
+    background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(10,15,30,0.95));
+    border: 1px solid rgba(240,180,41,0.2);
+    border-radius: 12px; padding: 1.1rem 1.2rem;
+    margin-bottom: 0.9rem;
+    transition: border-color .25s, box-shadow .25s;
+  }
+  .palpite-card:hover {
+    border-color: rgba(240,180,41,0.5);
+    box-shadow: 0 4px 20px rgba(240,180,41,0.12);
+  }
+  .palpite-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 50%;
+    font-weight: 800; font-size: 0.8rem; margin: 2px;
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    color: #ddd; transition: all .2s;
+  }
+  .palpite-num.ancora-num {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: transparent; color: #000;
+    box-shadow: 0 0 8px rgba(240,180,41,0.4);
+  }
+  .soma-badge {
+    font-size: 0.72rem; font-weight: 700;
+    background: rgba(59,130,246,0.15); color: var(--trade-blue);
+    border: 1px solid rgba(59,130,246,0.3);
+    padding: 0.2rem 0.6rem; border-radius: 20px;
+  }
+  .bt-card {
+    background: rgba(10,15,30,0.7);
+    border: 1px solid var(--trade-border);
+    border-radius: 12px; padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  .bt-concurso { font-size: 0.7rem; color: var(--trade-gold); font-weight: 700; letter-spacing: .06em; }
+  .bt-acerto-badge {
+    font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.55rem; border-radius: 12px;
+  }
+  .bt-11 { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .bt-12 { background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+  .bt-13 { background: rgba(96,165,250,0.15); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); }
+  .bt-14 { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
+  .bt-15 { background: rgba(240,180,41,0.25); color: var(--trade-gold); border: 1px solid rgba(240,180,41,0.5); }
+  .bt-sem { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.08); }
+  #trade-loading {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(5,8,18,0.88); backdrop-filter: blur(6px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .trade-spinner {
+    width: 52px; height: 52px; border-radius: 50%;
+    border: 4px solid rgba(240,180,41,0.15);
+    border-top-color: var(--trade-gold);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .bt-resumo-grid { display: grid; grid-template-columns: repeat(4,1fr); gap:0.75rem; margin-bottom:1rem; }
+  .bt-resumo-item {
+    text-align:center; padding:0.75rem 0.5rem;
+    background:rgba(255,255,255,0.04); border:1px solid var(--trade-border); border-radius:10px;
+  }
+  .bt-resumo-val { font-size:1.4rem; font-weight:900; }
+  .bt-resumo-label { font-size:0.64rem; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:.06em; }
+  @media(max-width:600px) { .bt-resumo-grid { grid-template-columns:repeat(2,1fr); } }
+  .btn-trade {
+    background: linear-gradient(135deg, #d97706, #f59e0b);
+    color: #000; font-weight: 800; font-size: 0.9rem;
+    border: none; border-radius: 10px; padding: 0.65rem 1.5rem;
+    cursor: pointer; transition: all .2s; letter-spacing: .02em;
+  }
+  .btn-trade:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(240,180,41,0.4); }
+  .btn-trade:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+  .section-label {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.3); margin-bottom: 0.6rem; display: block;
+  }
+</style>
+
+<!-- Loading Overlay -->
+<div id="trade-loading">
+  <div class="trade-spinner mb-3"></div>
+  <p class="text-warning fw-bold mb-1" style="font-size:.9rem">LotoMind Trade Engine</p>
+  <p class="text-muted" style="font-size:.75rem">Processando os 3 Pilares analíticos...</p>
+</div>
+
+<div class="trade-page" id="trade-content" style="display:none">
+
+  <!-- HERO -->
+  <div class="trade-hero mb-4">
+    <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+      <div>
+        <div class="trade-hero-title">🏦 LotoMind Trade Engine</div>
+        <div class="trade-hero-sub mt-1">Motor analítico trade-finance · Lotofácil CEF · SMA-10 + Bollinger + Backtest</div>
+      </div>
+      <div class="text-end">
+        <div id="hero-concurso" class="fw-bold text-warning" style="font-size:1.1rem"></div>
+        <div id="hero-data" class="text-muted" style="font-size:.75rem"></div>
+        <div id="hero-soma" class="mt-1" style="font-size:.78rem; color:rgba(255,255,255,.45)"></div>
+      </div>
+    </div>
+    <div class="ticker-bar mt-3" id="ticker-bar">
+      <span class="ticker-badge">● LIVE</span>&nbsp; Aguardando analise...
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Coluna Principal -->
+    <div class="col-lg-8">
+
+      <!-- PILAR 1 -->
+      <div class="pilar-card">
+        <div class="pilar-header">
+          <span class="pilar-badge">Pilar 1</span>
+          <span class="pilar-title">Frequencia de Curto Prazo</span>
+          <span class="pilar-sub">Semana (3) · Quinzena (6) · Ancoras</span>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <span class="section-label"><i class="bi bi-calendar3" style="color:var(--trade-blue)"></i> Dezenas da Semana (Top 8)</span>
+            <div id="chips-semana" class="d-flex flex-wrap gap-1"></div>
+          </div>
+          <div class="col-md-4">
+            <span class="section-label"><i class="bi bi-calendar-week" style="color:var(--trade-purple)"></i> Dezenas da Quinzena (Top 8)</span>
+            <div id="chips-quinzena" class="d-flex flex-wrap gap-1"></div>
+          </div>
+          <div class="col-md-4">
+            <span class="section-label"><i class="bi bi-crosshair2" style="color:var(--trade-gold)"></i> Dezenas Ancora</span>
+            <div id="chips-ancoras" class="d-flex flex-wrap gap-1"></div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="ancoras-table" id="ancoras-table">
+            <thead>
+              <tr>
+                <th>Dezena</th>
+                <th>Freq. Semana</th>
+                <th>Freq. Quinzena</th>
+                <th>Overlap</th>
+              </tr>
+            </thead>
+            <tbody id="ancoras-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PILAR 2a SMA -->
+      <div class="pilar-card">
+        <div class="pilar-header">
+          <span class="pilar-badge">Pilar 2a</span>
+          <span class="pilar-title">SMA-10 — Regressao a Media</span>
+          <span class="pilar-sub">Frequencia media simples (10 concursos)</span>
+        </div>
+        <div id="sma-container"></div>
+      </div>
+
+      <!-- PILAR 2b BOLLINGER -->
+      <div class="pilar-card">
+        <div class="pilar-header">
+          <span class="pilar-badge">Pilar 2b</span>
+          <span class="pilar-title">Bandas de Bollinger — Volatilidade da Soma</span>
+          <span class="pilar-sub">Ultimos 20 concursos · Media ± 2sigma</span>
+        </div>
+        <div class="bollinger-stats" id="bollinger-stats"></div>
+        <div style="position:relative; height:200px; margin-top:0.5rem">
+          <canvas id="chart-bollinger"></canvas>
+        </div>
+      </div>
+
+      <!-- PILAR 3 BACKTEST -->
+      <div class="pilar-card">
+        <div class="pilar-header">
+          <span class="pilar-badge">Pilar 3</span>
+          <span class="pilar-title">Backtesting — Ultimos 5 Concursos</span>
+          <span class="pilar-sub">Cegueira temporal real · Retorno estatistico</span>
+        </div>
+        <div class="bt-resumo-grid" id="bt-resumo-grid"></div>
+        <div id="bt-faixas-dist" class="mb-3"></div>
+        <div id="bt-concursos-container"></div>
+      </div>
+
+    </div>
+
+    <!-- Coluna Lateral Palpites -->
+    <div class="col-lg-4">
+      <div class="pilar-card" style="position:sticky; top:80px">
+        <div class="pilar-header">
+          <span class="pilar-badge" style="background:linear-gradient(135deg,#10b981,#059669)">GERAR</span>
+          <span class="pilar-title">Palpites Validados</span>
+        </div>
+        <p class="text-muted" style="font-size:0.75rem; margin-top:-0.5rem; margin-bottom:1rem">
+          5 palpites filtrados pelas Bandas de Bollinger.<br>
+          <span style="color:var(--trade-gold)">■</span> = dezena ancora incluida.
+        </p>
+        <div class="mb-2" id="palpite-bollinger-info" style="font-size:0.72rem; color:rgba(255,255,255,0.4)"></div>
+        <button class="btn-trade w-100 mb-3" id="btn-gerar" onclick="gerarPalpites()">
+          <i class="bi bi-lightning-fill"></i> Gerar 5 Palpites
+        </button>
+        <div id="palpites-container">
+          <div class="text-center text-muted py-4" style="font-size:0.8rem;">
+            <i class="bi bi-graph-up-arrow" style="font-size:2rem; color:var(--trade-gold); opacity:.4"></i>
+            <p class="mt-2">Clique em "Gerar" para<br>criar palpites filtrados</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+var _analise = null;
+var _bollChart = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+  carregarAnalise();
+});
+
+async function carregarAnalise() {
+  try {
+    var res = await fetch('/lotofacil/api/trade-analise');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    _analise = await res.json();
+    if (_analise.erro) throw new Error(_analise.erro);
+    renderizarTudo(_analise);
+  } catch(e) {
+    document.getElementById('trade-loading').innerHTML =
+      '<div class="text-danger fw-bold p-4"><i class="bi bi-exclamation-triangle"></i> Erro: ' + e.message + '</div>';
+  }
+}
+
+function renderizarTudo(data) {
+  renderHero(data.ultimo_concurso);
+  renderPilar1(data.pilar1);
+  renderSMA10(data.pilar2.sma10);
+  renderBollinger(data.pilar2.bollinger);
+  renderBacktest(data.pilar3);
+  document.getElementById('trade-loading').style.display = 'none';
+  document.getElementById('trade-content').style.display = 'block';
+}
+
+function renderHero(ult) {
+  document.getElementById('hero-concurso').textContent = 'Concurso #' + ult.concurso;
+  document.getElementById('hero-data').textContent = ult.data;
+  document.getElementById('hero-soma').textContent = 'Soma do ultimo resultado: ' + ult.soma;
+  var dezStr = ult.dezenas.map(function(d){ return String(d).padStart(2,'0'); }).join(' . ');
+  document.getElementById('ticker-bar').innerHTML =
+    '<span class="ticker-badge">● ULTIMO RESULTADO</span>&nbsp;' +
+    '<span style="color:#fff; letter-spacing:.1em">' + dezStr + '</span>&nbsp;&nbsp;' +
+    '<span style="color:rgba(255,255,255,.4)">|</span>&nbsp;&nbsp;' +
+    '<span style="color:var(--trade-blue)">SOMA: ' + ult.soma + '</span>&nbsp;&nbsp;' +
+    '<span style="color:rgba(255,255,255,.4)">|</span>&nbsp;&nbsp;' +
+    '<span style="color:rgba(255,255,255,.3)">' + ult.data + '</span>';
+}
+
+function renderPilar1(p1) {
+  var anchNums = new Set(p1.ancoras.map(function(a){ return a.dezena; }));
+
+  var cs = document.getElementById('chips-semana');
+  p1.semana.forEach(function(d) {
+    var cls = anchNums.has(d.dezena) ? 'ancora' : 'semana';
+    cs.insertAdjacentHTML('beforeend',
+      '<span class="dezena-chip ' + cls + '" title="' + d.freq + '/' + d.max_freq + ' (' + d.pct + '%)">' +
+      String(d.dezena).padStart(2,'0') + '</span>');
+  });
+
+  var cq = document.getElementById('chips-quinzena');
+  p1.quinzena.forEach(function(d) {
+    var cls = anchNums.has(d.dezena) ? 'ancora' : 'quinzena';
+    cq.insertAdjacentHTML('beforeend',
+      '<span class="dezena-chip ' + cls + '" title="' + d.freq + '/' + d.max_freq + ' (' + d.pct + '%)">' +
+      String(d.dezena).padStart(2,'0') + '</span>');
+  });
+
+  var ca = document.getElementById('chips-ancoras');
+  p1.ancoras.forEach(function(a) {
+    ca.insertAdjacentHTML('beforeend',
+      '<span class="dezena-chip ancora" title="Overlap: ' + a.overlap + '">' +
+      String(a.dezena).padStart(2,'0') + '</span>');
+  });
+
+  var tbody = document.getElementById('ancoras-tbody');
+  p1.ancoras.forEach(function(a) {
+    var overlapEl = a.overlap
+      ? '<span class="tag-confirmado">Overlap</span>'
+      : '<span class="tag-alerta">Top-5 Semana</span>';
+    var qFreq = a.freq_quinzena > 0
+      ? a.freq_quinzena + '/6 <span class="text-muted">(' + a.pct_quinzena + '%)</span>'
+      : '<span class="text-muted">-</span>';
+    tbody.insertAdjacentHTML('beforeend',
+      '<tr>' +
+        '<td><span class="dezena-chip ancora" style="width:30px;height:30px;font-size:.75rem">' + String(a.dezena).padStart(2,'0') + '</span></td>' +
+        '<td>' + a.freq_semana + '/3 <span class="text-muted">(' + a.pct_semana + '%)</span></td>' +
+        '<td>' + qFreq + '</td>' +
+        '<td>' + overlapEl + '</td>' +
+      '</tr>');
+  });
+}
+
+function renderSMA10(smaList) {
+  var container = document.getElementById('sma-container');
+  if (!smaList || !smaList.length) {
+    container.innerHTML = '<p class="text-muted small">Sem dados SMA.</p>';
+    return;
+  }
+  smaList.forEach(function(item) {
+    var pct10 = Math.min(item.sma10 * 100, 100).toFixed(1);
+    var pctH  = Math.min(item.media_historica * 100, 100).toFixed(1);
+    var barColor = item.confianca === 'alta' ? 'var(--trade-green)' : '#ff6b6b';
+    var tag = item.confianca === 'alta'
+      ? '<span class="tag-confirmado">' + item.emoji + ' TENDENCIA CONFIRMADA</span>'
+      : '<span class="tag-alerta">' + item.emoji + ' ANOMALIA PASSAGEIRA</span>';
+    var tend = item.tendencia_sma === 'subindo'
+      ? '<span style="color:var(--trade-green)">subindo</span>'
+      : (item.tendencia_sma === 'caindo'
+          ? '<span style="color:#ff6b6b">caindo</span>'
+          : '<span style="color:#aaa">estavel</span>');
+    container.insertAdjacentHTML('beforeend',
+      '<div class="d-flex align-items-center gap-3 mb-2 p-2" style="background:rgba(255,255,255,0.03);border-radius:8px;">' +
+        '<span class="dezena-chip ancora" style="flex-shrink:0;width:34px;height:34px;font-size:.78rem">' + String(item.dezena).padStart(2,'0') + '</span>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div class="d-flex justify-content-between mb-1" style="font-size:.7rem">' +
+            '<span style="color:rgba(255,255,255,.5)">SMA-10: <strong style="color:#fff">' + pct10 + '%</strong></span>' +
+            '<span style="color:rgba(255,255,255,.5)">Hist: <strong style="color:#fff">' + pctH + '%</strong></span>' +
+            '<span>SMA: ' + tend + '</span>' +
+          '</div>' +
+          '<div class="sma-bar-track"><div class="sma-bar-fill" style="width:' + pct10 + '%;background:' + barColor + '"></div></div>' +
+        '</div>' +
+        '<div style="flex-shrink:0">' + tag + '</div>' +
+      '</div>');
+  });
+}
+
+function renderBollinger(bol) {
+  if (!bol) return;
+  var stats = document.getElementById('bollinger-stats');
+  stats.innerHTML =
+    '<div class="bol-stat"><div class="bol-stat-val" style="color:var(--trade-green)">' + bol.banda_inferior.toFixed(0) + '</div><div class="bol-stat-label">Banda Inferior</div></div>' +
+    '<div class="bol-stat"><div class="bol-stat-val" style="color:var(--trade-gold)">' + bol.media.toFixed(1) + '</div><div class="bol-stat-label">Media (' + bol.janela + ' conc.)</div></div>' +
+    '<div class="bol-stat"><div class="bol-stat-val" style="color:var(--trade-red)">' + bol.banda_superior.toFixed(0) + '</div><div class="bol-stat-label">Banda Superior</div></div>' +
+    '<div class="bol-stat"><div class="bol-stat-val" style="color:var(--trade-blue)">' + bol.ultima_soma + '</div><div class="bol-stat-label">Ultima Soma ' + bol.zona_emoji + '</div></div>';
+
+  if (_bollChart) _bollChart.destroy();
+  var ctx = document.getElementById('chart-bollinger').getContext('2d');
+  var labels = bol.concursos_historico.map(function(c){ return '#' + c; });
+  var somas = bol.somas_historico;
+  var sup = Array(somas.length).fill(bol.banda_superior);
+  var inf = Array(somas.length).fill(bol.banda_inferior);
+  var med = Array(somas.length).fill(bol.media);
+  _bollChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Soma', data: somas, borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.08)', borderWidth: 2, pointRadius: 2, tension: 0.3, fill: false },
+        { label: 'Banda Sup', data: sup, borderColor: 'rgba(255,77,109,0.6)', borderDash:[5,4], borderWidth: 1.5, pointRadius: 0, fill: false },
+        { label: 'Media', data: med, borderColor: 'rgba(240,180,41,0.7)', borderDash:[4,3], borderWidth: 1.5, pointRadius: 0, fill: false },
+        { label: 'Banda Inf', data: inf, borderColor: 'rgba(0,209,122,0.6)', borderDash:[5,4], borderWidth: 1.5, pointRadius: 0, fill: false }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color:'rgba(255,255,255,.3)', font:{size:9}, maxTicksLimit:10 }, grid: { color:'rgba(255,255,255,.04)' } },
+        y: { ticks: { color:'rgba(255,255,255,.3)', font:{size:10} }, grid: { color:'rgba(255,255,255,.06)' } }
+      }
+    }
+  });
+}
+
+function renderBacktest(bt) {
+  if (!bt || !bt.concursos) return;
+  var resumo = bt.resumo;
+  var rg = document.getElementById('bt-resumo-grid');
+  rg.innerHTML =
+    '<div class="bt-resumo-item"><div class="bt-resumo-val" style="color:var(--trade-blue)">' + resumo.total_palpites + '</div><div class="bt-resumo-label">Palpites Testados</div></div>' +
+    '<div class="bt-resumo-item"><div class="bt-resumo-val" style="color:' + (resumo.total_premiados > 0 ? 'var(--trade-green)' : '#ff6b6b') + '">' + resumo.total_premiados + '</div><div class="bt-resumo-label">Premiados (11+)</div></div>' +
+    '<div class="bt-resumo-item"><div class="bt-resumo-val" style="color:var(--trade-gold)">' + resumo.taxa_premiacao + '%</div><div class="bt-resumo-label">Taxa de Premiacao</div></div>' +
+    '<div class="bt-resumo-item"><div class="bt-resumo-val" style="color:var(--trade-purple)">' + resumo.concursos_soma_dentro_bollinger + '/' + resumo.total_concursos + '</div><div class="bt-resumo-label">Somas Dentro Bollinger</div></div>';
+
+  var faixas = resumo.distribuicao_faixas;
+  var totalF = Object.values(faixas).reduce(function(a,b){ return a+b; }, 0);
+  if (totalF > 0) {
+    var fHtml = '<div class="d-flex gap-1 mb-3 flex-wrap">';
+    [15,14,13,12,11].forEach(function(f) {
+      if (faixas[f] > 0) fHtml += '<span class="bt-acerto-badge bt-' + f + '">' + faixas[f] + 'x ' + f + ' pts</span>';
+    });
+    fHtml += '</div>';
+    document.getElementById('bt-faixas-dist').innerHTML = fHtml;
+  }
+
+  var container = document.getElementById('bt-concursos-container');
+  bt.concursos.forEach(function(conc) {
+    var sorteioStr = conc.sorteio_real.map(function(d){ return String(d).padStart(2,'0'); }).join(' ');
+    var ancorasStr = conc.ancoras_usadas.map(function(d){ return String(d).padStart(2,'0'); }).join(' ');
+    var bolInfo = conc.bollinger_info;
+    var bolOk = bolInfo.soma_dentro_bollinger;
+    var palpitesHtml = '';
+    conc.palpites.forEach(function(p) {
+      var cls = p.acertos >= 15 ? 'bt-15' : p.acertos >= 14 ? 'bt-14' : p.acertos >= 13 ? 'bt-13' : p.acertos >= 12 ? 'bt-12' : p.acertos >= 11 ? 'bt-11' : 'bt-sem';
+      palpitesHtml += '<div class="d-flex align-items-center gap-2 mb-1" style="font-size:.72rem">' +
+        '<span class="bt-acerto-badge ' + cls + '">' + p.acertos + ' pts</span>' +
+        '<span style="color:rgba(255,255,255,.4); font-family:monospace">' + p.dezenas.map(function(d){ return String(d).padStart(2,'0'); }).join(' ') + '</span>' +
+        '<span class="ms-auto text-muted">S' + p.soma + '</span>' +
+      '</div>';
+    });
+    container.insertAdjacentHTML('beforeend',
+      '<div class="bt-card">' +
+        '<div class="d-flex align-items-center gap-2 mb-2">' +
+          '<span class="bt-concurso">CONCURSO #' + conc.concurso + '</span>' +
+          '<span class="text-muted" style="font-size:.68rem">' + conc.data + '</span>' +
+          '<span class="ms-auto ' + (bolOk ? 'tag-confirmado' : 'tag-alerta') + '" style="font-size:.65rem">' +
+            (bolOk ? 'Soma dentro Bollinger' : 'Soma fora Bollinger') +
+          '</span>' +
+        '</div>' +
+        '<div class="mb-2" style="font-size:.7rem; color:rgba(255,255,255,.35)">' +
+          '<strong style="color:rgba(255,255,255,.6)">Sorteio:</strong> ' +
+          '<span style="font-family:monospace; color:var(--trade-gold)">' + sorteioStr + '</span>' +
+          ' S' + bolInfo.soma_real + ' | Bandas: [' + bolInfo.banda_inf + ' - ' + bolInfo.banda_sup + '] | ' +
+          '<strong style="color:rgba(255,255,255,.5)">Ancoras (' + conc.acertos_ancoras_no_real + ' acertos):</strong> ' +
+          '<span style="font-family:monospace; color:var(--trade-purple)">' + ancorasStr + '</span>' +
+        '</div>' +
+        '<div style="border-top:1px solid rgba(255,255,255,.05); padding-top:.5rem">' + palpitesHtml + '</div>' +
+      '</div>');
+  });
+}
+
+async function gerarPalpites() {
+  var btn = document.getElementById('btn-gerar');
+  var container = document.getElementById('palpites-container');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Gerando...';
+  container.innerHTML = '<div class="text-center py-4"><div class="trade-spinner mx-auto mb-2" style="width:32px;height:32px;border-width:3px"></div><p class="text-muted" style="font-size:.75rem">Filtrando por Bollinger...</p></div>';
+  try {
+    var res = await fetch('/lotofacil/api/trade-gerar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qtd: 5 })
+    });
+    var data = await res.json();
+    if (data.erro) throw new Error(data.erro);
+    var bol = data.bollinger;
+    var anchNums = new Set((data.ancoras || []).map(function(a){ return a.dezena; }));
+    document.getElementById('palpite-bollinger-info').innerHTML =
+      'Bandas: <span style="color:var(--trade-green)">' + bol.banda_inferior.toFixed(0) + '</span>' +
+      ' - <span style="color:var(--trade-red)">' + bol.banda_superior.toFixed(0) + '</span>' +
+      ' | Media: <span style="color:var(--trade-gold)">' + bol.media.toFixed(1) + '</span>';
+    container.innerHTML = '';
+    if (!data.palpites || !data.palpites.length) {
+      container.innerHTML = '<p class="text-muted small text-center py-3">Nenhum palpite gerado dentro das bandas.<br>Tente novamente.</p>';
+      return;
+    }
+    data.palpites.forEach(function(p, idx) {
+      var numsHtml = '';
+      p.dezenas.forEach(function(d) {
+        var isAnc = anchNums.has(d);
+        numsHtml += '<span class="palpite-num ' + (isAnc ? 'ancora-num' : '') + '">' + String(d).padStart(2,'0') + '</span>';
+      });
+      container.insertAdjacentHTML('beforeend',
+        '<div class="palpite-card">' +
+          '<div class="d-flex justify-content-between align-items-center mb-2">' +
+            '<span style="font-size:.7rem; color:rgba(255,255,255,.4); font-weight:700; text-transform:uppercase; letter-spacing:.06em">Palpite ' + (idx+1) + '</span>' +
+            '<span class="soma-badge">Soma ' + p.soma + '</span>' +
+          '</div>' +
+          '<div class="d-flex flex-wrap">' + numsHtml + '</div>' +
+          '<div class="mt-2" style="font-size:.68rem; color:rgba(255,255,255,.3)">' +
+            p.qtd_ancoras + ' ancora(s) incluida(s) | ' + p.completares.length + ' complementar(es)' +
+          '</div>' +
+        '</div>');
+    });
+  } catch(e) {
+    container.innerHTML = '<p class="text-danger small"><i class="bi bi-exclamation-triangle"></i> Erro: ' + e.message + '</p>';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-lightning-fill"></i> Gerar 5 Palpites';
+  }
+}
+</script>
+{% endblock %}

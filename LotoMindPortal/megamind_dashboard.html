@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MegaMind Quant — Dashboard BI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
+/* ═══════════════════════════════════════════════
+   MegaMind Quant — Dashboard BI v3.0
+   #0d1117 · Cyan Neon · Gold · Glassmorphism 3D
+   ═══════════════════════════════════════════════ */
+
+:root {
+  --bg:       #0d1117;
+  --bg2:      #161b22;
+  --bg3:      #1c2333;
+  --border:   rgba(255,255,255,0.07);
+  --border-c: rgba(6,182,212,0.25);
+  --border-g: rgba(245,158,11,0.25);
+  --cyan:     #06b6d4;
+  --cyan-dim: rgba(6,182,212,0.15);
+  --cyan-glow:rgba(6,182,212,0.35);
+  --gold:     #f59e0b;
+  --gold-dim: rgba(245,158,11,0.12);
+  --gold-glow:rgba(245,158,11,0.35);
+  --green:    #10b981;
+  --red:      #ef4444;
+  --purple:   #8b5cf6;
+  --text:     #e6edf3;
+  --muted:    #8b949e;
+  --radius:   14px;
+  --t:        all 0.25s cubic-bezier(.4,0,.2,1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Canvas ─────────────────────────────────── */
+#cvs {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.6;
+}
+
+/* ── Layout wrapper ──────────────────────────── */
+.portal {
+  position: relative; z-index: 1;
+  max-width: 1600px; margin: 0 auto;
+  padding: 0 1.25rem 2rem;
+}
+
+/* ── Glass card mixin ────────────────────────── */
+.card {
+  background: rgba(22, 27, 34, 0.85);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow:
+    0 4px 24px rgba(0,0,0,0.6),
+    0 1px 0 rgba(255,255,255,0.04) inset,
+    0 -1px 0 rgba(0,0,0,0.3) inset;
+  transition: var(--t);
+}
+.card:hover {
+  border-color: rgba(6,182,212,0.18);
+  box-shadow:
+    0 8px 40px rgba(0,0,0,0.7),
+    0 0 0 1px rgba(6,182,212,0.06),
+    0 1px 0 rgba(255,255,255,0.06) inset;
+  transform: translateY(-2px);
+}
+
+/* ─────────────────────────────────────────────
+   HEADER
+   ───────────────────────────────────────────── */
+.header {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.85rem 1.5rem;
+  background: rgba(13,17,23,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 200;
+  margin: 0 -1.25rem 1.5rem;
+}
+
+.logo {
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.logo-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--cyan), var(--gold));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; color: #000; font-weight: 900;
+  box-shadow: 0 0 20px var(--cyan-glow);
+}
+.logo-text { font-size: 1.15rem; font-weight: 900; letter-spacing: -0.5px; }
+.logo-text span { color: var(--cyan); }
+.logo-version {
+  font-size: 0.58rem; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.8px;
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: 1px 6px; margin-left: 4px;
+}
+
+.header-center { flex: 1; display: flex; justify-content: center; }
+
+.prize-counter {
+  display: flex; align-items: center; gap: 12px;
+  background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(245,158,11,0.04));
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 10px; padding: 8px 20px;
+  box-shadow: 0 0 30px rgba(245,158,11,0.1);
+}
+.prize-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+.prize-val {
+  font-size: 1.2rem; font-weight: 900; color: var(--gold);
+  text-shadow: 0 0 20px var(--gold-glow);
+  animation: goldPulse 3s ease-in-out infinite;
+}
+@keyframes goldPulse {
+  0%,100% { text-shadow: 0 0 20px var(--gold-glow); }
+  50%      { text-shadow: 0 0 40px var(--gold-glow), 0 0 80px rgba(245,158,11,0.2); }
+}
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.status-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.7rem; font-weight: 600; color: var(--green);
+  background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25);
+  border-radius: 20px; padding: 5px 12px;
+}
+.status-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: statusBlink 2s ease-in-out infinite;
+}
+@keyframes statusBlink {
+  0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+}
+
+.concurso-badge {
+  font-size: 0.68rem; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px;
+}
+.concurso-badge span { color: var(--cyan); font-weight: 700; }
+
+/* ─────────────────────────────────────────────
+   KPI GRID (4 cards)
+   ───────────────────────────────────────────── */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.kpi-card {
+  position: relative; overflow: hidden;
+  padding: 1.1rem 1.25rem;
+  cursor: default;
+}
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.kpi-cyan::before  { background: linear-gradient(90deg, var(--cyan), transparent); }
+.kpi-gold::before  { background: linear-gradient(90deg, var(--gold), transparent); }
+.kpi-green::before { background: linear-gradient(90deg, var(--green), transparent); }
+.kpi-purple::before{ background: linear-gradient(90deg, var(--purple), transparent); }
+
+.kpi-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 0 20px rgba(6,182,212,0.08);
+}
+
+.kpi-inner { display: flex; align-items: center; gap: 1rem; }
+.kpi-icon {
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+}
+.kpi-icon-cyan   { background: rgba(6,182,212,0.1);  color: var(--cyan); }
+.kpi-icon-gold   { background: rgba(245,158,11,0.1); color: var(--gold); }
+.kpi-icon-green  { background: rgba(16,185,129,0.1); color: var(--green); }
+.kpi-icon-purple { background: rgba(139,92,246,0.1); color: var(--purple); }
+
+.kpi-info { flex: 1; }
+.kpi-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); font-weight: 600; }
+.kpi-val   { font-size: 1.5rem; font-weight: 800; line-height: 1.1; margin: 2px 0; }
+.kpi-sub   { font-size: 0.68rem; color: var(--muted); }
+
+.kpi-badge {
+  font-size: 0.58rem; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+  margin-top: 6px; display: inline-block;
+}
+.badge-ok   { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--green); }
+.badge-warn { background: rgba(245,158,11,0.12);  border: 1px solid rgba(245,158,11,0.3);  color: var(--gold); }
+
+/* ─────────────────────────────────────────────
+   MAIN SECTION
+   ───────────────────────────────────────────── */
+.main-grid {
+  display: grid; grid-template-columns: 1fr 340px; gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Frequency Chart */
+.freq-card { padding: 1.25rem; }
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.card-title {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--muted);
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title i { color: var(--cyan); }
+.card-tag {
+  font-size: 0.6rem; font-weight: 700; padding: 2px 10px; border-radius: 20px;
+  background: var(--cyan-dim); border: 1px solid var(--border-c); color: var(--cyan);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.chart-wrap { position: relative; height: 290px; }
+
+/* Right panel */
+.right-col { display: flex; flex-direction: column; gap: 1.25rem; }
+
+/* Top 10 */
+.top10-card { padding: 1.25rem; flex: 1; }
+.top10-list { display: flex; flex-direction: column; gap: 7px; margin-top: 0.75rem; }
+.top10-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px; border-radius: 8px;
+  transition: var(--t); cursor: default;
+}
+.top10-row:hover {
+  background: rgba(6,182,212,0.06);
+  transform: translateX(3px);
+}
+.top10-rank { font-size: 0.7rem; font-weight: 800; min-width: 20px; color: var(--muted); }
+.top10-rank.gold-rank { color: var(--gold); }
+.top10-ball {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.75rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+.ball-hot  { background: linear-gradient(145deg,#b45309,#f59e0b); border: 1.5px solid var(--gold); color: #000; box-shadow: 0 0 10px rgba(245,158,11,0.4); }
+.ball-warm { background: linear-gradient(145deg,#0e7490,#06b6d4); border: 1.5px solid var(--cyan); color: #fff; box-shadow: 0 0 10px rgba(6,182,212,0.3); }
+.ball-cool { background: linear-gradient(145deg,#1c2333,#2d3748); border: 1.5px solid rgba(255,255,255,0.1); color: var(--text); }
+
+.top10-name  { flex: 1; font-size: 0.75rem; font-weight: 600; }
+.top10-count { font-size: 0.72rem; font-weight: 800; color: var(--cyan); min-width: 36px; text-align: right; }
+.top10-bar   { position: relative; flex: 1; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; }
+.top10-fill  { height: 100%; border-radius: 2px; transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+
+/* Quadrantes radar */
+.quad-card { padding: 1.25rem; }
+.radar-wrap { height: 170px; position: relative; margin-top: 0.75rem; }
+
+/* ─────────────────────────────────────────────
+   BOTTOM SECTION
+   ───────────────────────────────────────────── */
+.bottom-grid {
+  display: grid; grid-template-columns: 300px 1fr 260px; gap: 1.25rem;
+}
+
+/* Gerador Mestre */
+.gen-card { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+.gen-title {
+  font-size: 0.88rem; font-weight: 800; color: var(--gold);
+  display: flex; align-items: center; gap: 8px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.gen-param { display: flex; flex-direction: column; gap: 6px; }
+.gen-param-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+.gen-slider {
+  display: flex; align-items: center; gap: 10px; font-size: 0.75rem;
+}
+.gen-slider input[type=range] {
+  flex: 1; accent-color: var(--gold); height: 4px;
+}
+.gen-slider-val {
+  min-width: 44px; text-align: center; font-weight: 800; font-size: 0.8rem;
+  color: var(--gold); background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px 6px;
+}
+
+.gen-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.filter-chip {
+  font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 4px 10px; border-radius: 20px; cursor: pointer;
+  background: rgba(6,182,212,0.08); border: 1px solid rgba(6,182,212,0.2); color: var(--cyan);
+  transition: var(--t);
+}
+.filter-chip.active { background: var(--cyan-dim); border-color: var(--border-c); box-shadow: 0 0 10px var(--cyan-glow); }
+.filter-chip:hover { background: var(--cyan-dim); }
+
+.btn-gen {
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  border: none; border-radius: 10px; cursor: pointer;
+  font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 800;
+  color: #000; padding: 12px; width: 100%; letter-spacing: 0.5px;
+  transition: var(--t);
+  box-shadow: 0 4px 20px rgba(245,158,11,0.25);
+}
+.btn-gen::after {
+  content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s ease;
+}
+.btn-gen:hover::after { left: 150%; }
+.btn-gen:hover {
+  box-shadow: 0 8px 30px rgba(245,158,11,0.4);
+  transform: translateY(-2px);
+}
+.btn-gen:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.btn-gen-sec {
+  background: rgba(6,182,212,0.08); border: 1px solid var(--border-c);
+  border-radius: 10px; cursor: pointer; font-family: 'Poppins', sans-serif;
+  font-size: 0.75rem; font-weight: 700; color: var(--cyan);
+  padding: 8px; width: 100%; transition: var(--t);
+}
+.btn-gen-sec:hover { background: var(--cyan-dim); box-shadow: 0 0 20px rgba(6,182,212,0.1); }
+
+/* Stats mini */
+.gen-stats { display: flex; justify-content: space-between; }
+.gen-stat { text-align: center; }
+.gen-stat .sv { font-size: 1rem; font-weight: 800; color: var(--cyan); }
+.gen-stat .sl { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+
+/* Elite games */
+.elite-card { padding: 1.25rem; }
+.jogos-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 0.75rem; min-height: 240px; }
+
+.jogo-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border-radius: 10px;
+  background: rgba(255,255,255,0.024);
+  border: 1px solid var(--border);
+  transition: var(--t); cursor: default; animation: fadeUp 0.4s ease both;
+}
+.jogo-row:hover {
+  border-color: var(--border-c);
+  background: rgba(6,182,212,0.04);
+  transform: translateX(4px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.jogo-num    { font-size: 0.65rem; font-weight: 800; color: var(--muted); min-width: 22px; }
+.jogo-balls  { display: flex; gap: 5px; flex: 1; }
+.jogo-ball-sm {
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.65rem;
+  transition: var(--t);
+}
+.jogo-ball-sm:hover { transform: scale(1.2); z-index: 10; position: relative; }
+.jball-q1  { background: linear-gradient(145deg,#065f46,#059669); border: 1.5px solid #10b981; color: #fff; }
+.jball-q2  { background: linear-gradient(145deg,#0e7490,#0891b2); border: 1.5px solid #06b6d4; color: #fff; }
+.jball-q3  { background: linear-gradient(145deg,#4c1d95,#6d28d9); border: 1.5px solid #8b5cf6; color: #fff; }
+.jball-q4  { background: linear-gradient(145deg,#92400e,#b45309); border: 1.5px solid #f59e0b; color: #000; }
+
+.jogo-soma {
+  font-size: 0.72rem; font-weight: 700; color: var(--cyan);
+  background: rgba(6,182,212,0.08); border: 1px solid rgba(6,182,212,0.2);
+  border-radius: 6px; padding: 2px 8px; flex-shrink: 0;
+}
+.jogo-sih-outer {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: conic-gradient(var(--gold) var(--pct, 295deg), rgba(255,255,255,0.06) 0deg);
+  display: flex; align-items: center; justify-content: center;
+}
+.jogo-sih-inner {
+  width: 26px; height: 26px; border-radius: 50%; background: var(--bg2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.55rem; font-weight: 900; color: var(--gold);
+}
+
+/* Placeholder vazio */
+.empty-state {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 8px; color: var(--muted); text-align: center;
+  padding: 2rem;
+}
+.empty-state i { font-size: 2rem; opacity: 0.3; }
+.empty-state p { font-size: 0.78rem; }
+
+/* Atrasadas */
+.atra-card { padding: 1.25rem; }
+.atra-list { display: flex; flex-direction: column; gap: 7px; margin-top: 0.75rem; }
+.atra-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px; border-radius: 8px; transition: var(--t); cursor: default;
+}
+.atra-row:hover { background: rgba(139,92,246,0.06); transform: translateX(3px); }
+.atra-ball {
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.7rem;
+}
+.atra-ball-hot  { background: linear-gradient(145deg,#4c1d95,#6d28d9); border: 1.5px solid var(--purple); color: #fff; box-shadow: 0 0 8px rgba(139,92,246,0.4); }
+.atra-ball-med  { background: linear-gradient(145deg,#1c2333,#2d3748); border: 1.5px solid rgba(255,255,255,0.1); color: var(--muted); }
+
+.atra-name  { flex: 1; font-size: 0.73rem; font-weight: 600; }
+.atra-delay { font-size: 0.7rem; font-weight: 800; min-width: 36px; text-align: right; }
+.atra-bar   { position: relative; flex: 1; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; }
+.atra-fill  { height: 100%; border-radius: 2px; }
+
+/* Loading spinner */
+.spin {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 2px solid rgba(245,158,11,0.2); border-top-color: var(--gold);
+  animation: spin 0.7s linear infinite; display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Footer ─────────────────────────────────── */
+.footer {
+  text-align: center; padding: 1.5rem 0 0.5rem;
+  font-size: 0.65rem; color: var(--muted);
+  border-top: 1px solid var(--border); margin-top: 1rem;
+}
+
+/* ── Scrollbar ───────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: rgba(6,182,212,0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+/* ── Responsive ──────────────────────────────── */
+@media (max-width: 1200px) {
+  .main-grid { grid-template-columns: 1fr 300px; }
+  .bottom-grid { grid-template-columns: 280px 1fr 220px; }
+}
+@media (max-width: 960px) {
+  .kpi-grid  { grid-template-columns: repeat(2,1fr); }
+  .main-grid { grid-template-columns: 1fr; }
+  .bottom-grid { grid-template-columns: 1fr; }
+  .prize-val { font-size: 0.95rem; }
+}
+@media (max-width: 600px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .header-center { display: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="cvs"></canvas>
+
+<div class="portal">
+
+  <!-- ══════════════════════════════════════════
+       HEADER
+       ══════════════════════════════════════════ -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-text"><span>Mega</span>Mind Quant <span class="logo-version">v3.0</span></div>
+        <div style="font-size:0.58rem;color:var(--muted);margin-top:-2px;">High-Frequency Lottery Analytics</div>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="prize-counter">
+        <i class="fas fa-trophy" style="color:var(--gold);font-size:1.1rem;"></i>
+        <div>
+          <div class="prize-label">Prêmio Acumulado — Mega-Sena</div>
+          <div class="prize-val" id="prizeCounter">R$ 115.000.000,00</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="concurso-badge">Concurso <span id="concurso">#3000</span></div>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        API Caixa Online
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════
+       KPI GRID — 4 Parâmetros de Normalidade
+       ══════════════════════════════════════════ -->
+  <div class="kpi-grid">
+
+    <div class="card kpi-card kpi-cyan">
+      <div class="kpi-inner">
+        <div class="kpi-icon kpi-icon-cyan"><i class="fas fa-sigma"></i></div>
+        <div class="kpi-info">
+          <div class="kpi-label">Soma Ideal</div>
+          <div class="kpi-val" style="color:var(--cyan);">170–230</div>
+          <div class="kpi-sub">Convergência: <strong>~183</strong></div>
+          <span class="kpi-badge badge-ok">✓ Zona Alvo</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card kpi-card kpi-gold">
+      <div class="kpi-inner">
+        <div class="kpi-icon kpi-icon-gold"><i class="fas fa-chart-simple"></i></div>
+        <div class="kpi-info">
+          <div class="kpi-label">Desvio Padrão</div>
+          <div class="kpi-val" style="color:var(--gold);">18–25</div>
+          <div class="kpi-sub">Histórico: <strong>~21,4</strong></div>
+          <span class="kpi-badge badge-ok">✓ Normal</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card kpi-card kpi-green">
+      <div class="kpi-inner">
+        <div class="kpi-icon kpi-icon-green"><i class="fas fa-divide"></i></div>
+        <div class="kpi-info">
+          <div class="kpi-label">Pares / Ímpares</div>
+          <div class="kpi-val" style="color:var(--green);">2–4 / 4–2</div>
+          <div class="kpi-sub">Ideal split: <strong>3/3</strong></div>
+          <span class="kpi-badge badge-ok">✓ Balanceado</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card kpi-card kpi-purple">
+      <div class="kpi-inner">
+        <div class="kpi-icon kpi-icon-purple"><i class="fas fa-star-of-david"></i></div>
+        <div class="kpi-info">
+          <div class="kpi-label">Primos</div>
+          <div class="kpi-val" style="color:var(--purple);">1–3</div>
+          <div class="kpi-sub">Esperado: <strong>~2 primos</strong></div>
+          <span class="kpi-badge badge-warn">↗ Monitorar</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       MAIN: Frequência + Painel Direito
+       ══════════════════════════════════════════ -->
+  <div class="main-grid">
+
+    <!-- Frequência 60 Dezenas -->
+    <div class="card freq-card">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fas fa-chart-bar"></i>
+          Frequência das 60 Dezenas — Histórico Completo
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="font-size:0.62rem;color:var(--muted);">3.000+ sorteios</div>
+          <span class="card-tag">Live</span>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="freqChart"></canvas>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;">
+        <span style="font-size:0.6rem;color:var(--muted);display:flex;align-items:center;gap:4px;">
+          <span style="width:10px;height:10px;border-radius:2px;background:var(--gold);display:inline-block;box-shadow:0 0 6px var(--gold-glow);"></span> Top 3 histórico
+        </span>
+        <span style="font-size:0.6rem;color:var(--muted);display:flex;align-items:center;gap:4px;">
+          <span style="width:10px;height:10px;border-radius:2px;background:var(--red);display:inline-block;"></span> Muito quente (&gt; 280x)
+        </span>
+        <span style="font-size:0.6rem;color:var(--muted);display:flex;align-items:center;gap:4px;">
+          <span style="width:10px;height:10px;border-radius:2px;background:var(--cyan);display:inline-block;"></span> Quente (260–280x)
+        </span>
+        <span style="font-size:0.6rem;color:var(--muted);display:flex;align-items:center;gap:4px;">
+          <span style="width:10px;height:10px;border-radius:2px;background:#334155;display:inline-block;"></span> Normal / Fria
+        </span>
+      </div>
+    </div>
+
+    <!-- Coluna Direita -->
+    <div class="right-col">
+
+      <!-- Top 10 -->
+      <div class="card top10-card">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-fire"></i> Top 10 — Mais Quentes</div>
+          <span class="card-tag" style="background:rgba(245,158,11,0.1);border-color:var(--border-g);color:var(--gold);">Manada</span>
+        </div>
+        <div class="top10-list" id="top10List"></div>
+      </div>
+
+      <!-- Quadrantes Radar -->
+      <div class="card quad-card">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-vector-square"></i> Quadrantes do Volante</div>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;">
+          <span style="font-size:0.62rem;color:var(--green);"><i class="fas fa-square-full"></i> Q1: 01-15</span>
+          <span style="font-size:0.62rem;color:var(--cyan);"><i class="fas fa-square-full"></i> Q2: 16-30</span>
+          <span style="font-size:0.62rem;color:var(--purple);"><i class="fas fa-square-full"></i> Q3: 31-45</span>
+          <span style="font-size:0.62rem;color:var(--gold);"><i class="fas fa-square-full"></i> Q4: 46-60</span>
+        </div>
+        <div class="radar-wrap">
+          <canvas id="radarChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       BOTTOM: Gerador + Elite + Atrasadas
+       ══════════════════════════════════════════ -->
+  <div class="bottom-grid">
+
+    <!-- Gerador Mestre -->
+    <div class="card gen-card">
+      <div class="gen-title">
+        <i class="fas fa-bolt" style="color:var(--gold);"></i>
+        Gerador Mestre
+      </div>
+
+      <div class="gen-stats">
+        <div class="gen-stat"><div class="sv" id="statSobr">—</div><div class="sl">Sobreviventes</div></div>
+        <div class="gen-stat"><div class="sv" id="statPass">—</div><div class="sl">Pass-Rate</div></div>
+        <div class="gen-stat"><div class="sv" id="statRejet">—</div><div class="sl">Rejeitados</div></div>
+      </div>
+
+      <div class="gen-param">
+        <div class="gen-param-label">Candidatos Monte Carlo</div>
+        <div class="gen-slider">
+          <i class="fas fa-sliders" style="color:var(--gold);font-size:0.75rem;"></i>
+          <input type="range" id="mcSlider" min="10000" max="200000" step="10000" value="50000"
+            oninput="document.getElementById('mcVal').textContent=Number(this.value).toLocaleString('pt-BR')">
+          <div class="gen-slider-val" id="mcVal">50.000</div>
+        </div>
+      </div>
+
+      <div class="gen-param">
+        <div class="gen-param-label">Jogos Elite a gerar</div>
+        <div class="gen-slider">
+          <i class="fas fa-list-ol" style="color:var(--gold);font-size:0.75rem;"></i>
+          <input type="range" id="qtdSlider" min="1" max="10" value="5"
+            oninput="document.getElementById('qtdVal').textContent=this.value">
+          <div class="gen-slider-val" id="qtdVal">5</div>
+        </div>
+      </div>
+
+      <div class="gen-param">
+        <div class="gen-param-label">Filtros Ativos</div>
+        <div class="gen-filters">
+          <div class="filter-chip active" onclick="toggleChip(this)">Calendário</div>
+          <div class="filter-chip active" onclick="toggleChip(this)">Geometria</div>
+          <div class="filter-chip active" onclick="toggleChip(this)">Progressão</div>
+          <div class="filter-chip active" onclick="toggleChip(this)">Contrarian</div>
+          <div class="filter-chip" onclick="toggleChip(this)">Entropia</div>
+        </div>
+      </div>
+
+      <button class="btn-gen" id="btnGerar" onclick="gerarJogos()">
+        <i class="fas fa-bolt"></i> &nbsp;EXECUTAR ANÁLISE QUANT
+      </button>
+
+      <button class="btn-gen-sec" onclick="resetJogos()">
+        <i class="fas fa-rotate"></i> Limpar Resultados
+      </button>
+
+      <div style="font-size:0.62rem;color:var(--muted);text-align:center;line-height:1.5;">
+        <strong style="color:var(--cyan);">p = 1/50.063.860</strong> · SIH mín: 72 · NumPy vetorizado
+      </div>
+    </div>
+
+    <!-- Jogos Elite -->
+    <div class="card elite-card">
+      <div class="card-header">
+        <div class="card-title"><i class="fas fa-crown"></i> Jogos Elite — Score SIH Máximo</div>
+        <span class="card-tag" id="eliteCount" style="display:none;">0 jogos</span>
+      </div>
+      <div class="jogos-grid" id="jogosGrid">
+        <div class="empty-state">
+          <i class="fas fa-wand-magic-sparkles"></i>
+          <p>Execute o Gerador Mestre para ver os jogos<br>com maior Score de Improbabilidade Humana (SIH)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Atrasadas -->
+    <div class="card atra-card">
+      <div class="card-header">
+        <div class="card-title"><i class="fas fa-clock"></i> Mais Atrasadas</div>
+        <span class="card-tag" style="background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.3);color:var(--purple);">Ciclo</span>
+      </div>
+      <div class="atra-list" id="atraList"></div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    MegaMind Quant v3.0 &nbsp;·&nbsp; LotoMind Portal &nbsp;·&nbsp; <strong style="color:var(--cyan);">p = 1 / 50.063.860</strong> para QUALQUER combinação &nbsp;·&nbsp;
+    Objetivo: maximizar EV = Prêmio ÷ N_Ganhadores &nbsp;·&nbsp; Dados: Caixa Econômica Federal
+  </div>
+
+</div><!-- /portal -->
+
+<!-- ══════════════════════════════════════════════
+     SCRIPTS
+     ══════════════════════════════════════════════ -->
+<script>
+
+// ── Dados simulados ─────────────────────────────────────────
+const FREQ_DATA = {
+  1:241,2:263,3:258,4:246,5:282,6:251,7:268,8:239,9:271,10:295,
+  11:253,12:264,13:278,14:259,15:244,16:271,17:261,18:257,19:248,20:276,
+  21:246,22:265,23:255,24:270,25:258,26:237,27:268,28:253,29:272,30:249,
+  31:261,32:267,33:275,34:246,35:259,36:263,37:271,38:255,39:248,40:265,
+  41:242,42:269,43:258,44:273,45:251,46:267,47:261,48:254,49:276,50:243,
+  51:269,52:261,53:288,54:255,55:273,56:248,57:265,58:271,59:244,60:258
+};
+
+const TOP10 = [
+  { n:10, freq:295 }, { n:53, freq:288 }, { n:5,  freq:282 },
+  { n:20, freq:276 }, { n:49, freq:276 }, { n:44, freq:273 },
+  { n:55, freq:273 }, { n:33, freq:275 }, { n:9,  freq:271 },
+  { n:16, freq:271 },
+];
+
+const ATRASADAS = [
+  { n:26, delay:47 }, { n:8,  delay:41 }, { n:41, delay:39 },
+  { n:15, delay:35 }, { n:4,  delay:33 }, { n:50, delay:30 },
+  { n:34, delay:28 }, { n:21, delay:25 }, { n:56, delay:22 },
+  { n:1,  delay:19 },
+];
+
+const QUAD_DATA = {
+  Q1: { label:'Q1 (01–15)', freq:265, color:'rgba(16,185,129,0.8)', border:'#10b981' },
+  Q2: { label:'Q2 (16–30)', freq:261, color:'rgba(6,182,212,0.8)',  border:'#06b6d4' },
+  Q3: { label:'Q3 (31–45)', freq:263, color:'rgba(139,92,246,0.8)', border:'#8b5cf6' },
+  Q4: { label:'Q4 (46–60)', freq:262, color:'rgba(245,158,11,0.8)', border:'#f59e0b' },
+};
+
+// ── Canvas Partículas ────────────────────────────────────────
+(function() {
+  const cvs = document.getElementById('cvs');
+  const ctx = cvs.getContext('2d');
+  let W, H, particles = [], mouse = {x:0,y:0};
+  const C = ['rgba(6,182,212,','rgba(245,158,11,','rgba(139,92,246,'];
+
+  function resize() { W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight; }
+  function mp() {
+    return { x:Math.random()*W, y:Math.random()*H,
+      r:Math.random()*1.2+0.2, vx:(Math.random()-.5)*.2, vy:(Math.random()-.5)*.2,
+      a:Math.random()*.35+.05, c:C[Math.floor(Math.random()*C.length)] };
+  }
+  function init() { particles = Array.from({length:Math.min(~~(W*H/16000),80)},mp); }
+  function loop() {
+    ctx.clearRect(0,0,W,H);
+    for(let i=0;i<particles.length;i++){
+      const p=particles[i];
+      const dx=mouse.x-p.x,dy=mouse.y-p.y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<160){p.vx+=dx/d*.003;p.vy+=dy/d*.003;}
+      p.vx*=.997;p.vy*=.997;
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<-5)p.x=W+5; if(p.x>W+5)p.x=-5;
+      if(p.y<-5)p.y=H+5; if(p.y>H+5)p.y=-5;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.c+p.a+')';ctx.fill();
+      for(let j=i+1;j<particles.length;j++){
+        const q=particles[j], dx2=p.x-q.x, dy2=p.y-q.y, d2=Math.sqrt(dx2*dx2+dy2*dy2);
+        if(d2<110){
+          ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);
+          ctx.strokeStyle=`rgba(6,182,212,${(1-d2/110)*.06})`;ctx.lineWidth=.5;ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+  resize();init();loop();
+  window.addEventListener('resize',()=>{resize();init();});
+  window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+})();
+
+// ── Chart: Frequência 60 Dezenas ─────────────────────────────
+(function() {
+  const labels = Array.from({length:60},(_,i)=>i+1);
+  const vals   = labels.map(n=>FREQ_DATA[n]);
+  const maxFreq = Math.max(...vals);
+  const colors = vals.map(v => {
+    if ([10,53,5].includes(labels[vals.indexOf(v)+labels.indexOf(v)-labels.indexOf(v)])) {}
+    return v;
+  });
+
+  // Cores por limiar
+  const bgColors = vals.map((v,i)=>{
+    const n = i+1;
+    if([10,53,5].includes(n)) return { bg:'rgba(245,158,11,0.85)', border:'#f59e0b', glow: true };
+    if(v>280)   return { bg:'rgba(239,68,68,0.75)',  border:'#ef4444', glow:false };
+    if(v>265)   return { bg:'rgba(6,182,212,0.7)',   border:'#06b6d4', glow:false };
+    if(v>255)   return { bg:'rgba(6,182,212,0.4)',   border:'rgba(6,182,212,0.5)', glow:false };
+    return       { bg:'rgba(51,65,85,0.6)',          border:'rgba(100,116,139,0.4)', glow:false };
+  });
+
+  const ctx = document.getElementById('freqChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels.map(n=>String(n).padStart(2,'0')),
+      datasets: [{
+        data: vals,
+        backgroundColor: bgColors.map(c=>c.bg),
+        borderColor:     bgColors.map(c=>c.border),
+        borderWidth: 1.5,
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 1200, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(22,27,34,0.95)',
+          borderColor: 'rgba(6,182,212,0.3)', borderWidth: 1,
+          titleColor: '#06b6d4', bodyColor: '#e6edf3',
+          callbacks: {
+            title: ctx => `Dezena ${ctx[0].label}`,
+            label: ctx => ` Frequência: ${ctx.raw}x sorteada`,
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
+          ticks: { color: '#8b949e', font: { size: 9, weight:'600' }, maxRotation: 0 },
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+          ticks: { color: '#8b949e', font: { size: 10 } },
+          min: 220, max: 305,
+        }
+      }
+    }
+  });
+})();
+
+// ── Chart: Radar Quadrantes ──────────────────────────────────
+(function() {
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['Q1 (01–15)','Q2 (16–30)','Q3 (31–45)','Q4 (46–60)'],
+      datasets: [
+        {
+          label: 'Freq. Média',
+          data: [265,261,263,262],
+          backgroundColor: 'rgba(6,182,212,0.12)',
+          borderColor: 'rgba(6,182,212,0.7)',
+          borderWidth: 2,
+          pointBackgroundColor: '#06b6d4',
+          pointBorderColor: '#06b6d4',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        },
+        {
+          label: 'SIH Alvo',
+          data: [250,268,270,258],
+          backgroundColor: 'rgba(245,158,11,0.08)',
+          borderColor: 'rgba(245,158,11,0.5)',
+          borderWidth: 1.5,
+          borderDash: [5,3],
+          pointBackgroundColor: '#f59e0b',
+          pointBorderColor: '#f59e0b',
+          pointRadius: 3,
+          pointHoverRadius: 5,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 1000 },
+      plugins: {
+        legend: {
+          labels: { color:'#8b949e', font:{size:10}, boxWidth:10, padding:8 },
+          position: 'bottom',
+        },
+        tooltip: {
+          backgroundColor:'rgba(22,27,34,0.95)',
+          borderColor:'rgba(6,182,212,0.3)', borderWidth:1,
+          titleColor:'#06b6d4', bodyColor:'#e6edf3',
+        }
+      },
+      scales: {
+        r: {
+          angleLines: { color:'rgba(255,255,255,0.06)' },
+          grid:       { color:'rgba(255,255,255,0.06)' },
+          pointLabels:{ color:'#8b949e', font:{size:10,weight:'600'} },
+          ticks:      { color:'#4b5975', backdropColor:'transparent', font:{size:8} },
+          min: 240, max: 280,
+        }
+      }
+    }
+  });
+})();
+
+// ── Top 10 ───────────────────────────────────────────────────
+(function() {
+  const maxF = TOP10[0].freq;
+  const list = document.getElementById('top10List');
+  TOP10.forEach((item, idx) => {
+    const pct = (item.freq / maxF * 100).toFixed(0);
+    const isTop3 = idx < 3;
+    const ballClass = isTop3 ? 'ball-hot' : idx < 6 ? 'ball-warm' : 'ball-cool';
+    const fillColor = isTop3 ? 'var(--gold)' : 'var(--cyan)';
+    const el = document.createElement('div');
+    el.className = 'top10-row';
+    el.innerHTML = `
+      <div class="top10-rank ${isTop3?'gold-rank':''}">${idx+1}º</div>
+      <div class="top10-ball ${ballClass}">${String(item.n).padStart(2,'0')}</div>
+      <div class="top10-name">Bola ${String(item.n).padStart(2,'0')}</div>
+      <div class="top10-bar" style="max-width:70px;">
+        <div class="top10-fill" style="width:${pct}%;background:${fillColor};"></div>
+      </div>
+      <div class="top10-count">${item.freq}x</div>
+    `;
+    list.appendChild(el);
+  });
+})();
+
+// ── Atrasadas ─────────────────────────────────────────────────
+(function() {
+  const maxD = ATRASADAS[0].delay;
+  const list = document.getElementById('atraList');
+  ATRASADAS.forEach((item, idx) => {
+    const pct = (item.delay / maxD * 100).toFixed(0);
+    const isHot = idx < 3;
+    const ballClass = isHot ? 'atra-ball-hot' : 'atra-ball-med';
+    const fillColor = isHot ? 'var(--purple)' : 'rgba(139,92,246,0.4)';
+    const el = document.createElement('div');
+    el.className = 'atra-row';
+    el.innerHTML = `
+      <div class="atra-ball ${ballClass}">${String(item.n).padStart(2,'0')}</div>
+      <div class="atra-name">Bola ${String(item.n).padStart(2,'0')}</div>
+      <div class="atra-bar">
+        <div class="atra-fill" style="width:${pct}%;background:${fillColor};"></div>
+      </div>
+      <div class="atra-delay" style="color:${isHot?'var(--purple)':'var(--muted)'};">${item.delay}c</div>
+    `;
+    list.appendChild(el);
+  });
+})();
+
+// ── Gerador Mestre (simulação) ────────────────────────────────
+function toggleChip(el) { el.classList.toggle('active'); }
+
+function gerarJogos() {
+  const btn = document.getElementById('btnGerar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> &nbsp; PROCESSANDO MONTE CARLO...';
+
+  const mc  = parseInt(document.getElementById('mcSlider').value);
+  const qtd = parseInt(document.getElementById('qtdSlider').value);
+
+  setTimeout(() => {
+    const sobr   = Math.floor(mc * (0.09 + Math.random() * 0.04));
+    const passP  = ((sobr / mc) * 100).toFixed(1);
+    const rejeit = mc - sobr;
+
+    document.getElementById('statSobr').textContent  = sobr.toLocaleString('pt-BR');
+    document.getElementById('statPass').textContent   = passP + '%';
+    document.getElementById('statRejet').textContent  = rejeit.toLocaleString('pt-BR');
+
+    const jogos = gerarJogosSimulados(qtd, sobr);
+    renderJogos(jogos);
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-bolt"></i> &nbsp;EXECUTAR ANÁLISE QUANT';
+  }, 1200 + Math.random() * 800);
+}
+
+function gerarJogosSimulados(qtd, sobr) {
+  const jogos = [];
+  const universe = Array.from({length:60},(_,i)=>i+1);
+
+  // Pool de "baixa manada": excluir top 10 quentes mais comuns
+  const manada = [10,53,5,20,49,33];
+
+  for(let i = 0; i < qtd; i++) {
+    // Gera combinação tendendo para números menos populares
+    let combo = [];
+    let tries = 0;
+    while(combo.length < 6 && tries < 500) {
+      tries++;
+      const n = universe[Math.floor(Math.random() * universe.length)];
+      if(!combo.includes(n)) {
+        // Penaliza números da manada
+        if(manada.includes(n) && Math.random() < 0.75) continue;
+        // Favorece números > 31
+        if(n <= 31 && combo.filter(x=>x<=31).length >= 2 && Math.random() < 0.6) continue;
+        combo.push(n);
+      }
+    }
+    combo.sort((a,b)=>a-b);
+
+    const soma = combo.reduce((s,n)=>s+n,0);
+    // Rejeitar soma fora do alvo
+    if(soma < 170 || soma > 230){ i--; continue; }
+
+    const sih = (75 + Math.random() * 15).toFixed(1);
+    jogos.push({ dezenas: combo, soma, sih: parseFloat(sih) });
+  }
+  return jogos;
+}
+
+function quadrante(n) {
+  if(n<=15) return 'q1';
+  if(n<=30) return 'q2';
+  if(n<=45) return 'q3';
+  return 'q4';
+}
+
+function renderJogos(jogos) {
+  const grid = document.getElementById('jogosGrid');
+  const badge = document.getElementById('eliteCount');
+
+  grid.innerHTML = '';
+  badge.style.display = 'inline-flex';
+  badge.textContent = jogos.length + ' jogos';
+
+  jogos.forEach((j, idx) => {
+    const sihPct = (j.sih / 100 * 360).toFixed(0) + 'deg';
+    const delay  = idx * 80;
+
+    const ballsHtml = j.dezenas.map(n => {
+      const q = quadrante(n);
+      return `<div class="jogo-ball-sm jball-${q}" title="Dezena ${n} — ${q.toUpperCase()}">${String(n).padStart(2,'0')}</div>`;
+    }).join('');
+
+    const row = document.createElement('div');
+    row.className = 'jogo-row'; row.style.animationDelay = delay + 'ms';
+    row.innerHTML = `
+      <div class="jogo-num">#${idx+1}</div>
+      <div class="jogo-balls">${ballsHtml}</div>
+      <div class="jogo-soma">Σ ${j.soma}</div>
+      <div class="jogo-sih-outer" style="--pct:${sihPct}">
+        <div class="jogo-sih-inner">${j.sih}</div>
+      </div>
+    `;
+    grid.appendChild(row);
+  });
+}
+
+function resetJogos() {
+  document.getElementById('jogosGrid').innerHTML = `
+    <div class="empty-state">
+      <i class="fas fa-rotate-left"></i>
+      <p>Resultados limpos. Execute novamente para gerar jogos elite.</p>
+    </div>`;
+  document.getElementById('eliteCount').style.display = 'none';
+  document.getElementById('statSobr').textContent  = '—';
+  document.getElementById('statPass').textContent   = '—';
+  document.getElementById('statRejet').textContent  = '—';
+}
+
+// ── Prize counter formatado ──────────────────────────────────
+(function() {
+  const el = document.getElementById('prizeCounter');
+  el.textContent = 'R$ 115.000.000,00';
+})();
+
+</script>
+</body>
+</html>

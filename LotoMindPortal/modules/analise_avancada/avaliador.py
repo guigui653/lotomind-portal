@@ -2,12 +2,12 @@
 LotoMind Portal — AvaliadorDeJogos (IA Explicável)
 ====================================================
 Classe orquestradora que avalia uma combinação de jogo contra
-8 critérios (filtros + análise histórica) e gera um boletim
-JSON completo com nota final e justificativas textuais.
+8 critérios estatísticos + motor de física teórica e gera um
+boletim JSON completo com nota final e justificativas textuais.
 
 Fluxo:
   1. carregar_historico(df, ...) → pré-calcula DNI, Afinidade, etc.
-  2. avaliar_e_pontuar_jogo(combinacao) → aplica 8 critérios
+  2. avaliar_e_pontuar_jogo(combinacao) → aplica 8 critérios + física
   3. gerar_relatorio_jogo() → retorna boletim JSON explicável
 
 Genérico: funciona para Lotofácil (25/15) e Mega-Sena (60/6).
@@ -28,6 +28,7 @@ from modules.analise_avancada.filtros_estruturais import (
     LAYOUT_LOTOFACIL,
     LAYOUT_MEGASENA,
 )
+from modules.analise_avancada.fisica_teorica import analisar_fisica_jogo
 
 
 # ════════════════════════════════════════════════════════════
@@ -103,6 +104,7 @@ class AvaliadorDeJogos:
         # Dados pré-calculados (preenchidos em carregar_historico)
         self.indices_atraso = {}
         self.matriz_afinidade = {}
+        self.historico_listas = []  # Para análise física
         self.historico_carregado = False
 
         # Cache do último relatório
@@ -123,6 +125,7 @@ class AvaliadorDeJogos:
             return
 
         historico_listas = df['Dezenas'].tolist()
+        self.historico_listas = historico_listas
 
         # 1. Índice de Atraso (DNI)
         self.indices_atraso = calcular_indice_atraso(
@@ -313,6 +316,13 @@ class AvaliadorDeJogos:
         }
         score_total += score_afinidade
 
+        # ── Motor de Física Teórica ───────────────────────
+        fisica = analisar_fisica_jogo(
+            jogo,
+            historico_sorteios=self.historico_listas,
+            universo=self.universo,
+        )
+
         # ── Score Final ───────────────────────────────────
         nota_final = round(min(score_total, self.MAX_SCORE))
 
@@ -336,7 +346,7 @@ class AvaliadorDeJogos:
 
         # Justificativa textual
         justificativa = self._gerar_justificativa_textual(
-            jogo, nota_final, filtros, analise_por_numero
+            jogo, nota_final, filtros, analise_por_numero, fisica
         )
 
         self._ultimo_resultado = {
@@ -346,6 +356,27 @@ class AvaliadorDeJogos:
             'filtros_aprovados': aprovados,
             'total_filtros': 8,
             'filtros': filtros,
+            'fisica': {
+                'score_fisico': fisica['score_fisico'],
+                'classificacao_fisica': fisica['classificacao_fisica'],
+                'massa': {
+                    'media': fisica['massa']['media'],
+                    'penalidade_media': fisica['massa']['penalidade_media'],
+                    'score': fisica['massa']['score'],
+                },
+                'termodinamica': {
+                    'temperatura_media': fisica['termodinamica']['temperatura_media'],
+                    'numeros_no_ponto_ebulicao': fisica['termodinamica']['numeros_no_ponto_ebulicao'],
+                    'fase_dominante': fisica['termodinamica']['fase_dominante'],
+                    'score': fisica['termodinamica']['score'],
+                },
+                'energia_cinetica': {
+                    'energia_media_jogo': fisica['energia_cinetica']['energia_media_jogo'],
+                    'coincidencias_com_simulacao': fisica['energia_cinetica']['coincidencias_com_simulacao'],
+                    'score': fisica['energia_cinetica']['score'],
+                    'log': fisica['energia_cinetica']['log'],
+                },
+            },
             'analise_por_numero': analise_por_numero,
             'justificativa_geral': justificativa,
         }
@@ -500,6 +531,7 @@ class AvaliadorDeJogos:
         nota_final: int,
         filtros: dict,
         analise_por_numero: List[dict],
+        fisica: Optional[dict] = None,
     ) -> str:
         """Constrói texto human-readable para o frontend."""
         partes = []
@@ -555,5 +587,26 @@ class AvaliadorDeJogos:
         pf = f_afin.get('pares_fortes', 0)
         if pf > 0:
             partes.append(f'{pf} pares com afinidade acima da média.')
+
+        # Física Teórica
+        if fisica:
+            temp_media = fisica.get('termodinamica', {}).get('temperatura_media', 0)
+            no_ponto = fisica.get('termodinamica', {}).get('numeros_no_ponto_ebulicao', 0)
+            classif_fis = fisica.get('classificacao_fisica', '')
+            score_fis = fisica.get('score_fisico', 0)
+
+            partes.append(f'[Física] {classif_fis} (score {score_fis}/100).')
+
+            if no_ponto > 0:
+                partes.append(
+                    f'{no_ponto} números no ponto de ebulição '
+                    f'(temperatura média {temp_media:.1f}°C).'
+                )
+
+            pen = fisica.get('massa', {}).get('penalidade_media', 0)
+            if pen <= 0.3:
+                partes.append('Massa das bolinhas leve — favorece quique no globo.')
+            elif pen >= 0.6:
+                partes.append('⚠️ Massa elevada — bolinhas pesadas podem ter desvantagem gravitacional.')
 
         return ' '.join(partes)
