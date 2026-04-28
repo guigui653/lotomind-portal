@@ -1,0 +1,15 @@
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\controller\GameController.java
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\dto\RegisterRequest.java
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\LotofacilApplication.java
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\security\JwtAuthenticationFilter.java
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\security\JwtTokenProvider.java
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\controller\AuthController.java
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\dto\LoginRequest.java
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\service\AuthService.java
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\dto\BacktestRequest.java
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\model\User.java
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\dto\AuthResponse.java
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\config\SecurityConfig.java
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\dto\GameRequest.java
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\controller\AnalysisController.java
+C:\Users\widso\OneDrive\Documentos\Projetos\LotoFacil\backend\src\main\java\com\lotofacil\service\PythonClientService.java

@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: lotofacil-backend
+
+# ── JWT ───────────────────────────────────────────────────────────
+app:
+  jwt:
+    secret: "YourSuperSecretKeyForJWT_LotoFacilPro3_2024_MustBe256BitsLong!!"
+    expiration-ms: 86400000  # 24h
+
+# ── Python Microservice ──────────────────────────────────────────
+python:
+  service:
+    base-url: http://localhost:8000
+
+# ── Logging ───────────────────────────────────────────────────────
+logging:
+  level:
+    com.lotofacil: DEBUG
+    org.springframework.security: INFO

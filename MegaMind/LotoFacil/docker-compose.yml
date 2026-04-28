@@ -1,0 +1,147 @@
+services:
+
+  # ═══════════════════════════════════════════════════════════════
+  #  INFRASTRUCTURE
+  # ═══════════════════════════════════════════════════════════════
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: lotomind-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-lotomind}
+      POSTGRES_USER: ${POSTGRES_USER:-lotomind}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lotomind_secret}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lotomind}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lotomind-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: lotomind-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lotomind-network
+    restart: unless-stopped
+  
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: lotomind-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin_secret
+    healthcheck:
+      test: [ "CMD", "rabbitmq-cli", "status" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - lotomind-network
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════
+  #  BACKEND SERVICES
+  # ═══════════════════════════════════════════════════════════════
+
+  backend-python:
+    build:
+      context: ./backend-python
+      dockerfile: Dockerfile
+    container_name: lotomind-python
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-lotomind}:${POSTGRES_PASSWORD:-lotomind_secret}@postgres:5432/${POSTGRES_DB:-lotomind}
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend-python:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - lotomind-network
+    restart: unless-stopped
+
+  backend-java:
+    build:
+      context: ./backend-java
+      dockerfile: Dockerfile
+    container_name: lotomind-java
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-lotomind}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-lotomind}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-lotomind_secret}
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - PYTHON_SERVICE_URL=http://backend-python:8000
+      - JWT_SECRET=${JWT_SECRET:-lotomind-jwt-secret-key-change-in-production}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend-python:
+        condition: service_started
+    networks:
+      - lotomind-network
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════
+  #  FRONTEND
+  # ═══════════════════════════════════════════════════════════════
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lotomind-frontend
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8080/api/v1
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend-java
+    networks:
+      - lotomind-network
+    restart: unless-stopped
+
+# ═════════════════════════════════════════════════════════════════
+#  NETWORKS & VOLUMES
+# ═════════════════════════════════════════════════════════════════
+
+networks:
+  lotomind-network:
+    driver: bridge
+    name: lotomind-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

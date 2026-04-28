@@ -1,0 +1,64 @@
+# ═══════════════════════════════════════════════════════
+#  LotoMind Enterprise — Application Configuration
+# ═══════════════════════════════════════════════════════
+
+spring:
+  application:
+    name: lotomind-enterprise
+
+  # ── DataSource (PostgreSQL) ─────────────────────────
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/lotomind}
+    username: ${SPRING_DATASOURCE_USERNAME:lotomind}
+    password: ${SPRING_DATASOURCE_PASSWORD:lotomind_secret}
+    driver-class-name: org.postgresql.Driver
+
+  # ── JPA / Hibernate ────────────────────────────────
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        default_schema: lotomind
+        format_sql: true
+        jdbc:
+          time_zone: America/Sao_Paulo
+
+  # ── Redis ───────────────────────────────────────────
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
+  # ── RabbitMQ ────────────────────────────────────────
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:admin}
+    password: ${SPRING_RABBITMQ_PASSWORD:admin_secret}
+    template:
+      exchange: lotomind.draw.exchange
+      routing-key: lotomind.draw.new
+
+# ── Server ──────────────────────────────────────────
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+
+# ── JWT ─────────────────────────────────────────────
+jwt:
+  secret: ${JWT_SECRET:lotomind-jwt-secret-key-change-in-production}
+  expiration-ms: 86400000   # 24 hours
+
+# ── Python Service (Feign) ──────────────────────────
+python:
+  service:
+    url: ${PYTHON_SERVICE_URL:http://localhost:8000}
+
+# ── Logging ─────────────────────────────────────────
+logging:
+  level:
+    com.lotomind: DEBUG
+    org.springframework.security: INFO

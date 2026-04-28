@@ -1,0 +1,34 @@
+/* ═══════════════════════════════════════════════════════════
+   LotoMind Enterprise — Global Styles
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  --primary: #6C63FF;
+  --primary-dark: #5A52D5;
+  --secondary: #00D9A6;
+  --bg-dark: #0F0F1A;
+  --bg-card: #1A1A2E;
+  --text-primary: #E8E8F0;
+  --text-muted: #8888A0;
+  --danger: #FF6B6B;
+  --warning: #FFD93D;
+  --success: #6BCB77;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}

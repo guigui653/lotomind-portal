@@ -1,0 +1,15 @@
+com\lotofacil\controller\AnalysisController.class
+com\lotofacil\dto\LoginRequest.class
+com\lotofacil\dto\GameRequest.class
+com\lotofacil\dto\RegisterRequest.class
+com\lotofacil\LotofacilApplication.class
+com\lotofacil\dto\AuthResponse.class
+com\lotofacil\security\JwtTokenProvider.class
+com\lotofacil\service\PythonClientService.class
+com\lotofacil\config\SecurityConfig.class
+com\lotofacil\service\AuthService.class
+com\lotofacil\model\User.class
+com\lotofacil\controller\AuthController.class
+com\lotofacil\controller\GameController.class
+com\lotofacil\dto\BacktestRequest.class
+com\lotofacil\security\JwtAuthenticationFilter.class
